@@ -1,16 +1,34 @@
 "use client";
 
-import { useEffect, useId, useRef, useState, type KeyboardEvent, type RefObject } from "react";
+import { logout } from "@/app/actions/auth";
+import {
+  isCurrent,
+  linksForRole,
+  sectionTitle,
+  type NavItem,
+} from "@/components/app-nav";
+import { roleLabel } from "@/lib/roles";
+import { IconLogout, IconMenu2, IconX } from "@tabler/icons-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { IconLogout, IconMenu2, IconX } from "@tabler/icons-react";
-import { logout } from "@/app/actions/auth";
-import { isCurrent, linksForRole, sectionTitle, type NavItem } from "@/components/app-nav";
-import { roleLabel } from "@/lib/roles";
+import {
+  useEffect,
+  useId,
+  useRef,
+  useState,
+  type KeyboardEvent,
+  type RefObject,
+} from "react";
 
 type ShellUser = { name: string; role: string };
 
-export function AppShell({ user, children }: { user: ShellUser; children: React.ReactNode }) {
+export function AppShell({
+  user,
+  children,
+}: {
+  user: ShellUser;
+  children: React.ReactNode;
+}) {
   const pathname = usePathname();
   const drawerId = useId();
   const closeRef = useRef<HTMLButtonElement>(null);
@@ -92,11 +110,13 @@ export function AppShell({ user, children }: { user: ShellUser; children: React.
             >
               <IconMenu2 className="size-5" aria-hidden />
             </button>
-            <p className="min-w-0 flex-1 truncate text-sm font-semibold">{sectionTitle(pathname)}</p>
+            <p className="min-w-0 flex-1 truncate text-sm font-semibold">
+              {sectionTitle(pathname)}
+            </p>
           </div>
         </header>
 
-        <div className="mx-auto flex w-full max-w-6xl flex-1 flex-col px-4 pt-4 pb-[calc(4.75rem+env(safe-area-inset-bottom))] sm:px-6 lg:px-8 lg:py-8 lg:pb-8 print:max-w-none print:bg-white print:p-0">
+        <div className="mx-auto flex w-full flex-1 flex-col px-4 pt-5 pb-[calc(5.25rem+env(safe-area-inset-bottom))] sm:px-6 sm:pt-6 lg:px-8 lg:pt-8 lg:pb-8 print:max-w-none print:bg-white print:p-0">
           {children}
         </div>
 
@@ -120,7 +140,9 @@ export function AppShell({ user, children }: { user: ShellUser; children: React.
                     }
                   >
                     <Icon className="size-5 shrink-0" aria-hidden />
-                    <span className="max-w-full truncate">{item.shortLabel}</span>
+                    <span className="max-w-full truncate">
+                      {item.shortLabel}
+                    </span>
                   </Link>
                 </li>
               );
@@ -150,13 +172,18 @@ function SidebarPanel({
   return (
     <div className="flex h-full w-full flex-col bg-sidebar pt-[env(safe-area-inset-top)] text-sidebar-foreground">
       <div className="flex items-center gap-3 px-4 py-4">
-        <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground" aria-hidden>
+        <span
+          className="grid size-9 shrink-0 place-items-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground"
+          aria-hidden
+        >
           <svg viewBox="0 0 24 24" className="size-5">
             <path fill="currentColor" d="M10 3h4v7h7v4h-7v7h-4v-7H3v-4h7V3z" />
           </svg>
         </span>
         <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-semibold tracking-tight">Hospital</p>
+          <p className="truncate text-sm font-semibold tracking-tight">
+            Hospital
+          </p>
           <p className="truncate text-xs text-muted-foreground">Operations</p>
         </div>
         {closeRef ? (
@@ -172,7 +199,10 @@ function SidebarPanel({
         ) : null}
       </div>
 
-      <nav className="flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto px-3" aria-label="Main">
+      <nav
+        className="flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto px-3"
+        aria-label="Main"
+      >
         {links.map((item) => {
           const current = isCurrent(pathname, item.href);
           const Icon = item.icon;
@@ -197,12 +227,17 @@ function SidebarPanel({
 
       <div className="shrink-0 border-t border-sidebar-border p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
         <div className="flex items-center gap-3 px-1 py-2">
-          <span className="grid size-10 shrink-0 place-items-center rounded-full bg-sidebar-accent text-sm font-semibold" aria-hidden>
+          <span
+            className="grid size-10 shrink-0 place-items-center rounded-full bg-sidebar-accent text-sm font-semibold"
+            aria-hidden
+          >
             {initials(user.name)}
           </span>
           <div className="min-w-0">
             <p className="truncate text-sm font-medium">{user.name}</p>
-            <p className="truncate text-xs text-muted-foreground">{roleLabel(user.role)}</p>
+            <p className="truncate text-xs text-muted-foreground">
+              {roleLabel(user.role)}
+            </p>
           </div>
         </div>
         <form action={logout} className="mt-1">
@@ -232,7 +267,11 @@ function onDialogKey(event: KeyboardEvent<HTMLElement>, close: () => void) {
     return;
   }
   if (event.key !== "Tab") return;
-  const items = [...event.currentTarget.querySelectorAll<HTMLElement>("a[href], button:not([disabled])")];
+  const items = [
+    ...event.currentTarget.querySelectorAll<HTMLElement>(
+      "a[href], button:not([disabled])",
+    ),
+  ];
   if (items.length === 0) return;
   const first = items[0];
   const last = items[items.length - 1];
