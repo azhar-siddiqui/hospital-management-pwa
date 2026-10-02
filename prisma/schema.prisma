@@ -14,7 +14,6 @@ datasource db {
 
 // --- ENUMS ---
 enum Role {
-  SUPER_ADMIN
   ADMIN
   RECEPTIONIST
   DOCTOR
@@ -38,6 +37,11 @@ enum BedStatus {
   AVAILABLE
   OCCUPIED
   MAINTENANCE
+}
+
+enum VisitStatus {
+  ACTIVE
+  DISCHARGED
 }
 
 // --- MODELS ---
@@ -67,6 +71,9 @@ model Patient {
 
   // Relations
   visits Visit[]
+
+  @@index([phone])
+  @@index([name])
 }
 
 model Visit {
@@ -75,15 +82,20 @@ model Visit {
   visitType       VisitType
   referringDoctor String? // For referral commissions
   consultationFee Float     @default(0.0)
-  admissionDate   DateTime  @default(now())
+  admissionDate   DateTime    @default(now())
   dischargeDate   DateTime?
-  status          String    @default("ACTIVE") // ACTIVE or DISCHARGED
+  status          VisitStatus @default(ACTIVE)
+  clinicalNote    String?
 
   // Relations
   patient        Patient         @relation(fields: [patientId], references: [id])
   bed            Bed?            @relation(fields: [bedId], references: [id])
   bedId          String?         @unique // A visit occupies exactly one bed at a time
   serviceCharges ServiceCharge[]
+
+  @@index([patientId])
+  @@index([status, visitType])
+  @@index([admissionDate])
 }
 
 model Bed {
@@ -94,6 +106,8 @@ model Bed {
 
   // Relations
   currentVisit Visit?
+
+  @@index([wardType, status])
 }
 
 model ServiceCharge {
@@ -107,6 +121,8 @@ model ServiceCharge {
 
   // Relations
   visit Visit @relation(fields: [visitId], references: [id], onDelete: Cascade)
+
+  @@index([visitId])
 }
 
 model Inventory {
@@ -127,4 +143,7 @@ model Expense {
 
   // Relations
   loggedBy User @relation(fields: [loggedById], references: [id])
+
+  @@index([expenseDate])
+  @@index([loggedById])
 }
