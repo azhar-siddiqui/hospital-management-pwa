@@ -1,13 +1,13 @@
-import { Suspense } from "react";
-import { CreateDoctorForm } from "@/components/doctors/create-doctor-form";
 import { DataTableSkeleton } from "@/components/data-table/data-table-skeleton";
 import { RecordCount } from "@/components/data-table/record-count";
 import { TableControlMenu } from "@/components/data-table/table-control-menu";
+import { CreateDoctorForm } from "@/components/doctors/create-doctor-form";
 import { DoctorsTable } from "@/components/tables/directory-tables";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { requirePermission } from "@/lib/auth";
 import { queryDoctors } from "@/lib/record-queries";
 import { doctorFilters, doctorSearch, readDataTableQuery, readTableMode } from "@/lib/table-search";
+import { Suspense } from "react";
 
 export default async function DoctorsPage({ searchParams }: PageProps<"/doctors">) {
   await requirePermission("doctors:manage");
@@ -41,22 +41,15 @@ export default async function DoctorsPage({ searchParams }: PageProps<"/doctors"
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader className="border-b">
-          <CardTitle>Directory</CardTitle>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-3 py-4">
-          <Suspense fallback={<DataTableSkeleton columnCount={5} filterCount={3} />}>
-            <TableControlMenu />
-            <DoctorsTable
-              data={rows}
-              pageCount={pageCount}
-              dataMode={dataMode}
-              filterMode={filterMode}
-            />
-          </Suspense>
-        </CardContent>
-      </Card>
+      <Suspense fallback={<DataTableSkeleton columnCount={5} filterCount={3} />}>
+        <TableControlMenu />
+        <DoctorsTable
+          data={rows}
+          pageCount={pageCount}
+          dataMode={dataMode}
+          filterMode={filterMode}
+        />
+      </Suspense>
     </main>
   );
 }

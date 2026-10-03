@@ -1,13 +1,12 @@
-import { Suspense } from "react";
-import { CreateItemForm, ExpenseForm } from "@/components/hospital/forms";
 import { DataTableSkeleton } from "@/components/data-table/data-table-skeleton";
 import { RecordCount } from "@/components/data-table/record-count";
 import { TableControlMenu } from "@/components/data-table/table-control-menu";
+import { CreateItemForm, ExpenseForm } from "@/components/hospital/forms";
 import { ExpensesTable, StockTable } from "@/components/tables/directory-tables";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { requirePermission } from "@/lib/auth";
-import { queryExpenses, queryStock } from "@/lib/record-queries";
 import { can } from "@/lib/permissions";
+import { queryExpenses, queryStock } from "@/lib/record-queries";
 import {
   expenseFilters,
   expenseQueryKeys,
@@ -17,6 +16,7 @@ import {
   stockFilters,
   stockQueryKeys,
 } from "@/lib/table-search";
+import { Suspense } from "react";
 
 export default async function InventoryPage({ searchParams }: PageProps<"/inventory">) {
   const user = await requirePermission("inventory:view");
@@ -54,25 +54,15 @@ export default async function InventoryPage({ searchParams }: PageProps<"/invent
         </Card>
       ) : null}
 
-      <Card>
-        <CardHeader className="border-b">
-          <CardTitle>Stock</CardTitle>
-          <CardDescription>
-            <RecordCount total={stock.total} capped={stock.capped} />
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="py-4">
-          <Suspense fallback={<DataTableSkeleton columnCount={6} filterCount={4} />}>
-            <StockTable
-              data={stock.rows}
-              pageCount={stock.pageCount}
-              dataMode={dataMode}
-              filterMode={filterMode}
-              manage={manage}
-            />
-          </Suspense>
-        </CardContent>
-      </Card>
+      <Suspense fallback={<DataTableSkeleton columnCount={6} filterCount={4} />}>
+        <StockTable
+          data={stock.rows}
+          pageCount={stock.pageCount}
+          dataMode={dataMode}
+          filterMode={filterMode}
+          manage={manage}
+        />
+      </Suspense>
 
       {can(user.role, "expenses:create") ? (
         <Card>
