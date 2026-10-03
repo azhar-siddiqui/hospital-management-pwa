@@ -1,19 +1,22 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { Suspense } from "react";
 import { StartVisitForm } from "@/components/hospital/forms";
-import { Badge } from "@/components/ui/badge";
+import { DataTableSkeleton } from "@/components/data-table/data-table-skeleton";
+import { RecordCount } from "@/components/data-table/record-count";
+import { TableControlMenu } from "@/components/data-table/table-control-menu";
+import { VisitsTable } from "@/components/tables/directory-tables";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Empty, EmptyDescription, EmptyHeader } from "@/components/ui/empty";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { requirePermission } from "@/lib/auth";
 import { doctorChoices } from "@/lib/doctors";
-import { formatMoney, formatWhen } from "@/lib/format";
 import { getPatient } from "@/lib/hospital";
 import { can } from "@/lib/permissions";
+import { queryPatientVisits } from "@/lib/record-queries";
+import { readDataTableQuery, readTableMode, visitFilters, visitSearch } from "@/lib/table-search";
 import type { VisitTypeName } from "@/lib/validation";
 
-export default async function PatientPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function PatientPage({ params, searchParams }: PageProps<"/patients/[id]">) {
   const user = await requirePermission("patients:view");
   const { id } = await params;
   const patient = await getPatient(id);
@@ -23,15 +26,31 @@ export default async function PatientPage({ params }: { params: Promise<{ id: st
     can(user.role, type === "OPD" ? "visits:opd" : "visits:admit"),
   ) as VisitTypeName[];
   const doctors = visitTypes.length > 0 ? await doctorChoices() : [];
-  const active = new Set(patient.visits.filter((visit) => visit.status === "ACTIVE").map((visit) => visit.visitType));
+  const active = new Set(
+    patient.visits.filter((visit) => visit.status === "ACTIVE").map((visit) => visit.visitType),
+  );
+  const parsed = await visitSearch.parse(searchParams);
+  const { dataMode, filterMode } = readTableMode(parsed);
+  const visits = await queryPatientVisits(
+    patient.id,
+    readDataTableQuery(parsed, visitFilters),
+    dataMode,
+  );
 
   return (
-    <main className="flex flex-col gap-8">
+    <main className="flex min-w-0 flex-col gap-8">
       <div>
-        <Button nativeButton={false} variant="link" className="h-auto px-0" render={<Link href="/patients" />}>
+        <Button
+          nativeButton={false}
+          variant="link"
+          className="h-auto px-0"
+          render={<Link href="/patients" />}
+        >
           Patients
         </Button>
-        <h1 className="mt-1 text-2xl font-semibold tracking-tight break-words sm:text-3xl">{patient.name}</h1>
+        <h1 className="mt-1 text-2xl font-semibold tracking-tight break-words sm:text-3xl">
+          {patient.name}
+        </h1>
         <p className="mt-1 text-sm text-muted-foreground">
           {patient.phone}
           {patient.age !== null ? ` · ${patient.age} years` : ""}
@@ -46,7 +65,8 @@ export default async function PatientPage({ params }: { params: Promise<{ id: st
             <CardTitle>New visit</CardTitle>
             {active.size > 0 ? (
               <CardDescription>
-                Active now: {[...active].join(", ")}. A second active visit of the same type is rejected.
+                Active now: {[...active].join(", ")}. A second active visit of the same type is
+                rejected.
               </CardDescription>
             ) : null}
           </CardHeader>
@@ -59,47 +79,21 @@ export default async function PatientPage({ params }: { params: Promise<{ id: st
       <Card>
         <CardHeader className="border-b">
           <CardTitle>Visits</CardTitle>
+          <CardDescription>
+            <RecordCount total={visits.total} capped={visits.capped} />
+          </CardDescription>
         </CardHeader>
-        {patient.visits.length === 0 ? (
-          <CardContent>
-            <Empty className="border-0">
-              <EmptyHeader>
-                <EmptyDescription>No visits yet.</EmptyDescription>
-              </EmptyHeader>
-            </Empty>
-          </CardContent>
-        ) : (
-          <Table className="min-w-[36rem]">
-            <TableHeader>
-              <TableRow>
-                <TableHead>Type</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Admitted</TableHead>
-                <TableHead>Fee</TableHead>
-                <TableHead>Bed</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {patient.visits.map((visit) => (
-                <TableRow key={visit.id}>
-                  <TableCell>
-                    <Link href={`/visits/${visit.id}`} className="font-medium hover:underline">
-                      {visit.visitType}
-                    </Link>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant={visit.status === "ACTIVE" ? "default" : "secondary"}>
-                      {visit.status === "ACTIVE" ? "Active" : "Discharged"}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>{formatWhen(visit.admissionDate)}</TableCell>
-                  <TableCell>{formatMoney(visit.consultationFee)}</TableCell>
-                  <TableCell>{visit.bed?.bedNumber ?? "—"}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        )}
+        <CardContent className="flex flex-col gap-3 py-4">
+          <Suspense fallback={<DataTableSkeleton columnCount={6} filterCount={4} />}>
+            <TableControlMenu />
+            <VisitsTable
+              data={visits.rows}
+              pageCount={visits.pageCount}
+              dataMode={dataMode}
+              filterMode={filterMode}
+            />
+          </Suspense>
+        </CardContent>
       </Card>
     </main>
   );

@@ -32,7 +32,10 @@ function refresh(...paths: string[]) {
   }
 }
 
-export async function registerPatientAction(_state: ActionState, formData: FormData): Promise<ActionState> {
+export async function registerPatientAction(
+  _state: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
   const actor = await requireUser();
   const parsed = parseRegistration(formData);
   if (!parsed.ok) return { ok: false, errors: parsed.errors };
@@ -42,7 +45,10 @@ export async function registerPatientAction(_state: ActionState, formData: FormD
   redirect(`/patients/${result.patientId}`);
 }
 
-export async function startVisitAction(_state: ActionState, formData: FormData): Promise<ActionState> {
+export async function startVisitAction(
+  _state: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
   const actor = await requireUser();
   const patientId = readText(formData.get("patientId"));
   const parsed = parseVisitStart(formData);
@@ -54,7 +60,10 @@ export async function startVisitAction(_state: ActionState, formData: FormData):
   redirect(`/visits/${result.visitId}`);
 }
 
-export async function saveNoteAction(_state: ActionState, formData: FormData): Promise<ActionState> {
+export async function saveNoteAction(
+  _state: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
   const actor = await requireUser();
   const visitId = readText(formData.get("visitId"));
   const parsed = parseNote(formData);
@@ -65,7 +74,10 @@ export async function saveNoteAction(_state: ActionState, formData: FormData): P
   return { ok: true, message: "Note saved." };
 }
 
-export async function addChargeAction(_state: ActionState, formData: FormData): Promise<ActionState> {
+export async function addChargeAction(
+  _state: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
   const actor = await requireUser();
   const visitId = readText(formData.get("visitId"));
   const parsed = parseCharge(formData);
@@ -76,7 +88,10 @@ export async function addChargeAction(_state: ActionState, formData: FormData): 
   return { ok: true, message: "Charge added." };
 }
 
-export async function dischargeVisitAction(_state: ActionState, formData: FormData): Promise<ActionState> {
+export async function dischargeVisitAction(
+  _state: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
   const actor = await requireUser();
   if (formData.get("confirm") !== "on") {
     return { ok: false, message: "Confirm the discharge before continuing." };
@@ -88,7 +103,10 @@ export async function dischargeVisitAction(_state: ActionState, formData: FormDa
   return { ok: true, message: "Patient discharged." };
 }
 
-export async function createBedAction(_state: ActionState, formData: FormData): Promise<ActionState> {
+export async function createBedAction(
+  _state: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
   const actor = await requireUser();
   const parsed = parseBed(formData);
   if (!parsed.ok) return { ok: false, errors: parsed.errors };
@@ -98,7 +116,10 @@ export async function createBedAction(_state: ActionState, formData: FormData): 
   return { ok: true, message: `Bed ${parsed.data.bedNumber} added.` };
 }
 
-export async function setBedStatusAction(_state: ActionState, formData: FormData): Promise<ActionState> {
+export async function setBedStatusAction(
+  _state: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
   const actor = await requireUser();
   const status = readText(formData.get("status"));
   if (status !== "AVAILABLE" && status !== "MAINTENANCE") {
@@ -107,10 +128,16 @@ export async function setBedStatusAction(_state: ActionState, formData: FormData
   const result = await setBedAvailability(actor, readText(formData.get("bedId")), status);
   if (!result.ok) return result;
   refresh("/beds", "/");
-  return { ok: true, message: status === "MAINTENANCE" ? "Bed marked for maintenance." : "Bed is available." };
+  return {
+    ok: true,
+    message: status === "MAINTENANCE" ? "Bed marked for maintenance." : "Bed is available.",
+  };
 }
 
-export async function assignBedAction(_state: ActionState, formData: FormData): Promise<ActionState> {
+export async function assignBedAction(
+  _state: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
   const actor = await requireUser();
   const visitId = readText(formData.get("visitId"));
   const bedId = readText(formData.get("bedId"));
@@ -120,7 +147,10 @@ export async function assignBedAction(_state: ActionState, formData: FormData): 
   return { ok: true, message: "Bed assigned." };
 }
 
-export async function createItemAction(_state: ActionState, formData: FormData): Promise<ActionState> {
+export async function createItemAction(
+  _state: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
   const actor = await requireUser();
   const parsed = parseInventoryItem(formData);
   if (!parsed.ok) return { ok: false, errors: parsed.errors };
@@ -130,7 +160,10 @@ export async function createItemAction(_state: ActionState, formData: FormData):
   return { ok: true, message: `${parsed.data.itemName} added.` };
 }
 
-export async function updateStockAction(_state: ActionState, formData: FormData): Promise<ActionState> {
+export async function updateStockAction(
+  _state: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
   const actor = await requireUser();
   const quantity = readStock(readText(formData.get("quantity")));
   if (!quantity.ok) return { ok: false, message: quantity.error };
@@ -140,7 +173,10 @@ export async function updateStockAction(_state: ActionState, formData: FormData)
   return { ok: true, message: "Stock updated." };
 }
 
-export async function logExpenseAction(_state: ActionState, formData: FormData): Promise<ActionState> {
+export async function logExpenseAction(
+  _state: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
   const actor = await requireUser();
   const parsed = parseExpense(formData);
   if (!parsed.ok) return { ok: false, errors: parsed.errors };

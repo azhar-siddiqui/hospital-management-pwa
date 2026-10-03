@@ -1,28 +1,40 @@
+import { Suspense } from "react";
 import { CreateDoctorForm } from "@/components/doctors/create-doctor-form";
+import { DataTableSkeleton } from "@/components/data-table/data-table-skeleton";
+import { RecordCount } from "@/components/data-table/record-count";
+import { TableControlMenu } from "@/components/data-table/table-control-menu";
+import { DoctorsTable } from "@/components/tables/directory-tables";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Empty, EmptyDescription, EmptyHeader } from "@/components/ui/empty";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { requirePermission } from "@/lib/auth";
-import { listDoctors } from "@/lib/doctors";
-import { formatWhen } from "@/lib/format";
+import { queryDoctors } from "@/lib/record-queries";
+import { doctorFilters, doctorSearch, readDataTableQuery, readTableMode } from "@/lib/table-search";
 
-export default async function DoctorsPage() {
+export default async function DoctorsPage({ searchParams }: PageProps<"/doctors">) {
   await requirePermission("doctors:manage");
-  const doctors = await listDoctors();
+  const parsed = await doctorSearch.parse(searchParams);
+  const { dataMode, filterMode } = readTableMode(parsed);
+  const { rows, total, pageCount, capped } = await queryDoctors(
+    readDataTableQuery(parsed, doctorFilters),
+    dataMode,
+  );
 
   return (
-    <main className="flex flex-col gap-8">
+    <main className="flex min-w-0 flex-col gap-8">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">Doctors</h1>
         <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
-          Referring doctors selected when a patient is registered. The visit keeps the name even if this record changes later.
+          Referring doctors selected when a patient is registered. The visit keeps the name even if
+          this record changes later.
         </p>
+        <RecordCount total={total} capped={capped} />
       </div>
 
       <Card>
         <CardHeader>
           <CardTitle>Add doctor</CardTitle>
-          <CardDescription>Name is required. Specialty and phone help the front desk tell people apart.</CardDescription>
+          <CardDescription>
+            Name is required. Specialty and phone help the front desk tell people apart.
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <CreateDoctorForm />
@@ -33,36 +45,17 @@ export default async function DoctorsPage() {
         <CardHeader className="border-b">
           <CardTitle>Directory</CardTitle>
         </CardHeader>
-        {doctors.length === 0 ? (
-          <CardContent>
-            <Empty className="border-0">
-              <EmptyHeader>
-                <EmptyDescription>No doctors yet.</EmptyDescription>
-              </EmptyHeader>
-            </Empty>
-          </CardContent>
-        ) : (
-          <Table className="min-w-[36rem]">
-            <TableHeader>
-              <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Specialty</TableHead>
-                <TableHead>Phone</TableHead>
-                <TableHead>Added</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {doctors.map((doctor) => (
-                <TableRow key={doctor.id}>
-                  <TableCell className="font-medium">{doctor.name}</TableCell>
-                  <TableCell>{doctor.specialty || "—"}</TableCell>
-                  <TableCell>{doctor.phone || "—"}</TableCell>
-                  <TableCell className="text-muted-foreground">{formatWhen(doctor.createdAt)}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        )}
+        <CardContent className="flex flex-col gap-3 py-4">
+          <Suspense fallback={<DataTableSkeleton columnCount={5} filterCount={3} />}>
+            <TableControlMenu />
+            <DoctorsTable
+              data={rows}
+              pageCount={pageCount}
+              dataMode={dataMode}
+              filterMode={filterMode}
+            />
+          </Suspense>
+        </CardContent>
       </Card>
     </main>
   );

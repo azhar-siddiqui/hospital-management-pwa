@@ -90,22 +90,22 @@ model Patient {
 }
 
 model Visit {
-  id              String    @id @default(uuid())
-  patientId       String
-  visitType       VisitType
+  id                String      @id @default(uuid())
+  patientId         String
+  visitType         VisitType
   referringDoctor   String? // Name at the time of the visit, kept for receipts
   referringDoctorId String?
-  consultationFee   Float     @default(0.0)
-  admissionDate     DateTime  @default(now())
+  consultationFee   Float       @default(0.0)
+  admissionDate     DateTime    @default(now())
   dischargeDate     DateTime?
   status            VisitStatus @default(ACTIVE)
   clinicalNote      String?
 
   // Relations
-  patient        Patient @relation(fields: [patientId], references: [id])
-  doctor         Doctor? @relation(fields: [referringDoctorId], references: [id], onDelete: SetNull)
-  bed            Bed?    @relation(fields: [bedId], references: [id])
-  bedId          String? @unique // A visit occupies exactly one bed at a time
+  patient        Patient         @relation(fields: [patientId], references: [id])
+  doctor         Doctor?         @relation(fields: [referringDoctorId], references: [id], onDelete: SetNull)
+  bed            Bed?            @relation(fields: [bedId], references: [id])
+  bedId          String?         @unique // A visit occupies exactly one bed at a time
   serviceCharges ServiceCharge[]
 
   @@index([patientId])

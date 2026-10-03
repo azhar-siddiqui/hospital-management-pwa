@@ -1,35 +1,17 @@
 "use client";
 
 import { logout } from "@/app/actions/auth";
-import {
-  isCurrent,
-  linksForRole,
-  sectionTitle,
-  type NavItem,
-} from "@/components/app-nav";
+import { isCurrent, linksForRole, sectionTitle, type NavItem } from "@/components/app-nav";
 import { roleLabel } from "@/lib/roles";
 import { Button } from "@/components/ui/button";
 import { IconLogout, IconMenu2, IconX } from "@tabler/icons-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import {
-  useEffect,
-  useId,
-  useRef,
-  useState,
-  type KeyboardEvent,
-  type RefObject,
-} from "react";
+import { useEffect, useId, useRef, useState, type KeyboardEvent, type RefObject } from "react";
 
 type ShellUser = { name: string; role: string };
 
-export function AppShell({
-  user,
-  children,
-}: {
-  user: ShellUser;
-  children: React.ReactNode;
-}) {
+export function AppShell({ user, children }: { user: ShellUser; children: React.ReactNode }) {
   const pathname = usePathname();
   const drawerId = useId();
   const closeRef = useRef<HTMLButtonElement>(null);
@@ -143,9 +125,7 @@ export function AppShell({
                     }
                   >
                     <Icon className="size-5 shrink-0" aria-hidden />
-                    <span className="max-w-full truncate">
-                      {item.shortLabel}
-                    </span>
+                    <span className="max-w-full truncate">{item.shortLabel}</span>
                   </Link>
                 </li>
               );
@@ -184,9 +164,7 @@ function SidebarPanel({
           </svg>
         </span>
         <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-semibold tracking-tight">
-            Hospital
-          </p>
+          <p className="truncate text-sm font-semibold tracking-tight">Hospital</p>
           <p className="truncate text-xs text-muted-foreground">Operations</p>
         </div>
         {closeRef ? (
@@ -204,10 +182,7 @@ function SidebarPanel({
         ) : null}
       </div>
 
-      <nav
-        className="flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto px-3"
-        aria-label="Main"
-      >
+      <nav className="flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto px-3" aria-label="Main">
         {links.map((item) => {
           const current = isCurrent(pathname, item.href);
           const Icon = item.icon;
@@ -237,9 +212,7 @@ function SidebarPanel({
           </span>
           <div className="min-w-0">
             <p className="truncate text-sm font-medium">{user.name}</p>
-            <p className="truncate text-xs text-muted-foreground">
-              {roleLabel(user.role)}
-            </p>
+            <p className="truncate text-xs text-muted-foreground">{roleLabel(user.role)}</p>
           </div>
         </div>
         <form action={logout} className="mt-1">
@@ -267,9 +240,7 @@ function onDialogKey(event: KeyboardEvent<HTMLElement>, close: () => void) {
   }
   if (event.key !== "Tab") return;
   const items = [
-    ...event.currentTarget.querySelectorAll<HTMLElement>(
-      "a[href], button:not([disabled])",
-    ),
+    ...event.currentTarget.querySelectorAll<HTMLElement>("a[href], button:not([disabled])"),
   ];
   if (items.length === 0) return;
   const first = items[0];

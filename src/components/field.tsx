@@ -40,12 +40,7 @@ export function Field({
   return (
     <FieldRoot className={className} data-invalid={error ? true : undefined}>
       <FieldLabel htmlFor={id}>{label}</FieldLabel>
-      <Input
-        id={id}
-        name={name}
-        aria-invalid={error ? true : undefined}
-        {...props}
-      />
+      <Input id={id} name={name} aria-invalid={error ? true : undefined} {...props} />
       {error ? (
         <FieldError>{error}</FieldError>
       ) : hint ? (
@@ -119,22 +114,11 @@ export function SelectField({
   );
 }
 
-export function FormMessage({
-  message,
-  ok,
-}: {
-  message?: string;
-  ok?: boolean;
-}) {
+export function FormMessage({ message, ok }: { message?: string; ok?: boolean }) {
   if (!message) return null;
   return (
-    <Alert
-      variant={ok ? "default" : "destructive"}
-      role={ok ? "status" : "alert"}
-    >
-      <AlertDescription className={ok ? "text-foreground" : undefined}>
-        {message}
-      </AlertDescription>
+    <Alert variant={ok ? "default" : "destructive"} role={ok ? "status" : "alert"}>
+      <AlertDescription className={ok ? "text-foreground" : undefined}>{message}</AlertDescription>
     </Alert>
   );
 }

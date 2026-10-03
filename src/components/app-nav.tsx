@@ -18,17 +18,48 @@ export type NavItem = {
 };
 
 export const NAV_ITEMS: NavItem[] = [
-  { href: "/", label: "Dashboard", shortLabel: "Home", permission: null, icon: IconLayoutDashboard },
-  { href: "/patients", label: "Patients", shortLabel: "Patients", permission: "patients:view", icon: IconUsers },
-  { href: "/doctors", label: "Doctors", shortLabel: "Doctors", permission: "doctors:manage", icon: IconStethoscope },
+  {
+    href: "/",
+    label: "Dashboard",
+    shortLabel: "Home",
+    permission: null,
+    icon: IconLayoutDashboard,
+  },
+  {
+    href: "/patients",
+    label: "Patients",
+    shortLabel: "Patients",
+    permission: "patients:view",
+    icon: IconUsers,
+  },
+  {
+    href: "/doctors",
+    label: "Doctors",
+    shortLabel: "Doctors",
+    permission: "doctors:manage",
+    icon: IconStethoscope,
+  },
   { href: "/beds", label: "Beds", shortLabel: "Beds", permission: "beds:view", icon: IconBed },
-  { href: "/inventory", label: "Inventory", shortLabel: "Stock", permission: "inventory:view", icon: IconPackage },
-  { href: "/staff", label: "Staff", shortLabel: "Staff", permission: "staff:manage", icon: IconUserCog },
+  {
+    href: "/inventory",
+    label: "Inventory",
+    shortLabel: "Stock",
+    permission: "inventory:view",
+    icon: IconPackage,
+  },
+  {
+    href: "/staff",
+    label: "Staff",
+    shortLabel: "Staff",
+    permission: "staff:manage",
+    icon: IconUserCog,
+  },
 ];
 
 export function isCurrent(pathname: string, href: string) {
   if (href === "/") return pathname === "/";
-  if (href === "/patients" && (pathname.startsWith("/patients") || pathname.startsWith("/visits"))) return true;
+  if (href === "/patients" && (pathname.startsWith("/patients") || pathname.startsWith("/visits")))
+    return true;
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 

@@ -1,27 +1,33 @@
+import { Suspense } from "react";
 import { CreateUserForm } from "@/components/staff/create-user-form";
-import { Badge } from "@/components/ui/badge";
+import { DataTableSkeleton } from "@/components/data-table/data-table-skeleton";
+import { RecordCount } from "@/components/data-table/record-count";
+import { TableControlMenu } from "@/components/data-table/table-control-menu";
+import { StaffTable } from "@/components/tables/directory-tables";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { requireAdmin } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
-import { roleLabel } from "@/lib/roles";
-import { isSeededAdmin } from "@/lib/users";
+import { queryStaff } from "@/lib/record-queries";
+import { readDataTableQuery, readTableMode, staffFilters, staffSearch } from "@/lib/table-search";
 
-export default async function StaffPage() {
+export default async function StaffPage({ searchParams }: PageProps<"/staff">) {
   await requireAdmin();
-  const users = await prisma.user.findMany({
-    orderBy: { createdAt: "asc" },
-    select: { id: true, name: true, email: true, role: true, createdAt: true },
-  });
+  const parsed = await staffSearch.parse(searchParams);
+  const { dataMode, filterMode } = readTableMode(parsed);
+  const { rows, total, pageCount, capped } = await queryStaff(
+    readDataTableQuery(parsed, staffFilters),
+    dataMode,
+  );
 
   return (
-    <main className="flex flex-col gap-8">
+    <main className="flex min-w-0 flex-col gap-8">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">Staff</h1>
         <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
           The admin account is seeded from <code className="text-foreground">ADMIN_EMAIL</code> and{" "}
-          <code className="text-foreground">ADMIN_PASSWORD</code>. Use this page to create every other role.
+          <code className="text-foreground">ADMIN_PASSWORD</code>. Use this page to create every
+          other role.
         </p>
+        <RecordCount total={total} capped={capped} />
       </div>
 
       <Card>
@@ -37,33 +43,17 @@ export default async function StaffPage() {
         <CardHeader className="border-b">
           <CardTitle>People</CardTitle>
         </CardHeader>
-        <Table className="min-w-[36rem]">
-          <TableHeader>
-            <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Email</TableHead>
-              <TableHead>Role</TableHead>
-              <TableHead>Added</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {users.map((user) => (
-              <TableRow key={user.id}>
-                <TableCell className="font-medium">{user.name}</TableCell>
-                <TableCell>{user.email}</TableCell>
-                <TableCell>
-                  {roleLabel(user.role)}
-                  {isSeededAdmin(user.email) ? (
-                    <Badge variant="secondary" className="ml-2">
-                      From .env
-                    </Badge>
-                  ) : null}
-                </TableCell>
-                <TableCell className="text-muted-foreground">{user.createdAt.toLocaleDateString()}</TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+        <CardContent className="flex flex-col gap-3 py-4">
+          <Suspense fallback={<DataTableSkeleton columnCount={6} filterCount={4} />}>
+            <TableControlMenu />
+            <StaffTable
+              data={rows}
+              pageCount={pageCount}
+              dataMode={dataMode}
+              filterMode={filterMode}
+            />
+          </Suspense>
+        </CardContent>
       </Card>
     </main>
   );

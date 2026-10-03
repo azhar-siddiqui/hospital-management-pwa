@@ -23,13 +23,7 @@ function matchesDoctor(item: DoctorChoice, query: string) {
   return `${item.label} ${item.specialty ?? ""}`.toLowerCase().includes(needle);
 }
 
-export function DoctorCombobox({
-  doctors,
-  error,
-}: {
-  doctors: DoctorChoice[];
-  error?: string;
-}) {
+export function DoctorCombobox({ doctors, error }: { doctors: DoctorChoice[]; error?: string }) {
   const fieldId = "referringDoctorId";
   const [value, setValue] = useState<DoctorChoice | null>(null);
 
@@ -61,13 +55,17 @@ export function DoctorCombobox({
           aria-invalid={error ? true : undefined}
         />
         <ComboboxContent>
-          <ComboboxEmpty>{doctors.length === 0 ? "Add doctors on the Doctors page." : "No matching doctors."}</ComboboxEmpty>
+          <ComboboxEmpty>
+            {doctors.length === 0 ? "Add doctors on the Doctors page." : "No matching doctors."}
+          </ComboboxEmpty>
           <ComboboxList>
             {(item: DoctorChoice) => (
               <ComboboxItem key={item.value} value={item}>
                 <span className="flex min-w-0 flex-col">
                   <span className="truncate">{item.label}</span>
-                  {item.specialty ? <span className="truncate text-xs text-muted-foreground">{item.specialty}</span> : null}
+                  {item.specialty ? (
+                    <span className="truncate text-xs text-muted-foreground">{item.specialty}</span>
+                  ) : null}
                 </span>
               </ComboboxItem>
             )}

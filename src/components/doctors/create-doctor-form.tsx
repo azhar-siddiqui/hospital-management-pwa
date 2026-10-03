@@ -18,7 +18,13 @@ export function CreateDoctorForm() {
     <form ref={formRef} action={action} className="grid gap-4 sm:grid-cols-2">
       <Field label="Name" name="name" required autoComplete="name" error={state.errors?.name} />
       <Field label="Specialty" name="specialty" error={state.errors?.specialty} />
-      <Field label="Phone" name="phone" inputMode="tel" autoComplete="tel" error={state.errors?.phone} />
+      <Field
+        label="Phone"
+        name="phone"
+        inputMode="tel"
+        autoComplete="tel"
+        error={state.errors?.phone}
+      />
       <div className="flex flex-col gap-2 sm:col-span-2 sm:flex-row sm:items-center sm:justify-between">
         <FormMessage message={state.message} ok={state.ok} />
         <Button type="submit" disabled={pending}>

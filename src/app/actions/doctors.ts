@@ -5,7 +5,10 @@ import type { ActionState } from "@/lib/action-state";
 import { requireUser } from "@/lib/auth";
 import { createDoctor, parseDoctor } from "@/lib/doctors";
 
-export async function createDoctorAction(_state: ActionState, formData: FormData): Promise<ActionState> {
+export async function createDoctorAction(
+  _state: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
   const actor = await requireUser();
   const parsed = parseDoctor(formData);
   if (!parsed.ok) return { ok: false, errors: parsed.errors };

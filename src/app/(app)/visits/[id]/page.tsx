@@ -1,41 +1,29 @@
+import { Suspense } from "react";
 import {
   AssignBedForm,
   ChargeForm,
   ClinicalNoteForm,
   DischargeForm,
 } from "@/components/hospital/forms";
+import { DataTableSkeleton } from "@/components/data-table/data-table-skeleton";
+import { RecordCount } from "@/components/data-table/record-count";
+import { TableControlMenu } from "@/components/data-table/table-control-menu";
+import { ChargesTable } from "@/components/tables/directory-tables";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardAction,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Empty, EmptyDescription, EmptyHeader } from "@/components/ui/empty";
+import { Card, CardAction, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { requirePermission } from "@/lib/auth";
 import { formatMoney, formatWhen, roundMoney } from "@/lib/format";
 import { getVisit, listAvailableBeds } from "@/lib/hospital";
 import { can } from "@/lib/permissions";
+import { queryVisitCharges } from "@/lib/record-queries";
+import { chargeFilters, chargeSearch, readDataTableQuery, readTableMode } from "@/lib/table-search";
 import { WARD_LABELS, type WardTypeName } from "@/lib/validation";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-export default async function VisitPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
+export default async function VisitPage({ params, searchParams }: PageProps<"/visits/[id]">) {
   const user = await requirePermission("patients:view");
   const { id } = await params;
   const visit = await getVisit(id);
@@ -47,15 +35,19 @@ export default async function VisitPage({
   );
   const billTotal = roundMoney(visit.consultationFee + chargesTotal);
   const beds =
-    active &&
-    visit.visitType === "IPD" &&
-    !visit.bed &&
-    can(user.role, "beds:manage")
+    active && visit.visitType === "IPD" && !visit.bed && can(user.role, "beds:manage")
       ? await listAvailableBeds()
       : [];
+  const parsed = await chargeSearch.parse(searchParams);
+  const { dataMode, filterMode } = readTableMode(parsed);
+  const charges = await queryVisitCharges(
+    visit.id,
+    readDataTableQuery(parsed, chargeFilters),
+    dataMode,
+  );
 
   return (
-    <main className="flex flex-col gap-8">
+    <main className="flex min-w-0 flex-col gap-8">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <Button
@@ -74,9 +66,7 @@ export default async function VisitPage({
               {active ? "Active" : "Discharged"}
             </Badge>
             admitted {formatWhen(visit.admissionDate)}
-            {visit.dischargeDate
-              ? ` · discharged ${formatWhen(visit.dischargeDate)}`
-              : ""}
+            {visit.dischargeDate ? ` · discharged ${formatWhen(visit.dischargeDate)}` : ""}
           </p>
         </div>
         <Button
@@ -91,10 +81,7 @@ export default async function VisitPage({
       <Card>
         <CardContent className="grid gap-3 sm:grid-cols-2">
           <Info label="Phone" value={visit.patient.phone} />
-          <Info
-            label="Consultation fee"
-            value={formatMoney(visit.consultationFee)}
-          />
+          <Info label="Consultation fee" value={formatMoney(visit.consultationFee)} />
           <Info label="Referring doctor" value={visit.referringDoctor || "—"} />
           <Info
             label="Bed"
@@ -113,10 +100,7 @@ export default async function VisitPage({
         </CardHeader>
         <CardContent>
           {active && can(user.role, "visits:note") ? (
-            <ClinicalNoteForm
-              visitId={visit.id}
-              note={visit.clinicalNote ?? ""}
-            />
+            <ClinicalNoteForm visitId={visit.id} note={visit.clinicalNote ?? ""} />
           ) : (
             <p className="whitespace-pre-wrap text-sm">
               {visit.clinicalNote || "No note recorded."}
@@ -133,34 +117,16 @@ export default async function VisitPage({
           </CardAction>
         </CardHeader>
         <CardContent className="flex flex-col gap-5">
-          {visit.serviceCharges.length === 0 ? (
-            <Empty className="border-0 p-0">
-              <EmptyHeader>
-                <EmptyDescription>No service charges yet.</EmptyDescription>
-              </EmptyHeader>
-            </Empty>
-          ) : (
-            <Table className="min-w-lg">
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Service</TableHead>
-                  <TableHead>Qty</TableHead>
-                  <TableHead>Unit</TableHead>
-                  <TableHead>Total</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {visit.serviceCharges.map((charge) => (
-                  <TableRow key={charge.id}>
-                    <TableCell>{charge.serviceName}</TableCell>
-                    <TableCell>{charge.quantity}</TableCell>
-                    <TableCell>{formatMoney(charge.unitPrice)}</TableCell>
-                    <TableCell>{formatMoney(charge.total)}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
+          <RecordCount total={charges.total} capped={charges.capped} />
+          <Suspense fallback={<DataTableSkeleton columnCount={6} filterCount={3} />}>
+            <TableControlMenu />
+            <ChargesTable
+              data={charges.rows}
+              pageCount={charges.pageCount}
+              dataMode={dataMode}
+              filterMode={filterMode}
+            />
+          </Suspense>
           {active && can(user.role, "visits:charge") ? (
             <>
               <Separator />
@@ -171,10 +137,7 @@ export default async function VisitPage({
       </Card>
 
       {beds.length > 0 ||
-      (active &&
-        visit.visitType === "IPD" &&
-        !visit.bed &&
-        can(user.role, "beds:manage")) ? (
+      (active && visit.visitType === "IPD" && !visit.bed && can(user.role, "beds:manage")) ? (
         <Card>
           <CardHeader>
             <CardTitle>Bed</CardTitle>

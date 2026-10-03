@@ -22,7 +22,13 @@ export function LoginForm({ nextPath }: { nextPath?: string }) {
         spellCheck={false}
         required
       />
-      <Field label="Password" name="password" type="password" autoComplete="current-password" required />
+      <Field
+        label="Password"
+        name="password"
+        type="password"
+        autoComplete="current-password"
+        required
+      />
       <FormMessage message={state.message} />
       <Button type="submit" disabled={pending} className="mt-1 w-full">
         {pending ? "Signing in…" : "Sign in"}

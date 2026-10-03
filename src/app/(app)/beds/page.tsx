@@ -1,7 +1,15 @@
 import Link from "next/link";
 import { BedStatusForm, CreateBedForm } from "@/components/hospital/forms";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardAction, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardAction,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
 import { requirePermission } from "@/lib/auth";
 import { listBeds } from "@/lib/hospital";
@@ -55,7 +63,10 @@ export default async function BedsPage() {
                         <CardTitle>Bed {bed.bedNumber}</CardTitle>
                         <CardDescription>
                           {bed.currentVisit ? (
-                            <Link href={`/visits/${bed.currentVisit.id}`} className="font-medium text-foreground hover:underline">
+                            <Link
+                              href={`/visits/${bed.currentVisit.id}`}
+                              className="font-medium text-foreground hover:underline"
+                            >
                               {bed.currentVisit.patient.name}
                             </Link>
                           ) : (
@@ -63,7 +74,15 @@ export default async function BedsPage() {
                           )}
                         </CardDescription>
                         <CardAction>
-                          <Badge variant={bed.status === "MAINTENANCE" ? "destructive" : bed.status === "OCCUPIED" ? "secondary" : "default"}>
+                          <Badge
+                            variant={
+                              bed.status === "MAINTENANCE"
+                                ? "destructive"
+                                : bed.status === "OCCUPIED"
+                                  ? "secondary"
+                                  : "default"
+                            }
+                          >
                             {BED_STATUS_LABELS[bed.status]}
                           </Badge>
                         </CardAction>
@@ -84,4 +103,3 @@ export default async function BedsPage() {
     </main>
   );
 }
-

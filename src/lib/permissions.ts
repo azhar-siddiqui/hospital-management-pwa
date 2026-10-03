@@ -27,7 +27,14 @@ export type Permission = (typeof PERMISSIONS)[number];
 
 const grants: Record<AppRole, readonly Permission[]> = {
   ADMIN: PERMISSIONS,
-  RECEPTIONIST: ["patients:view", "patients:register", "visits:opd", "beds:view", "reports:fees", "doctors:manage"],
+  RECEPTIONIST: [
+    "patients:view",
+    "patients:register",
+    "visits:opd",
+    "beds:view",
+    "reports:fees",
+    "doctors:manage",
+  ],
   DOCTOR: ["patients:view", "visits:note", "visits:discharge", "beds:view"],
   NURSE: [
     "patients:view",
@@ -89,9 +96,18 @@ export function permissionForPath(pathname: string): Permission | null {
 const RETURN_PREFIXES = ["/staff", "/patients", "/visits", "/beds", "/inventory", "/doctors"];
 
 export function safeReturnPath(value: string | null | undefined) {
-  if (!value || !value.startsWith("/") || value.startsWith("//") || value.includes("\\") || value.includes("?") || value.includes("%")) {
+  if (
+    !value ||
+    !value.startsWith("/") ||
+    value.startsWith("//") ||
+    value.includes("\\") ||
+    value.includes("?") ||
+    value.includes("%")
+  ) {
     return "/";
   }
-  const allowed = RETURN_PREFIXES.some((prefix) => value === prefix || value.startsWith(`${prefix}/`));
+  const allowed = RETURN_PREFIXES.some(
+    (prefix) => value === prefix || value.startsWith(`${prefix}/`),
+  );
   return allowed ? value : "/";
 }

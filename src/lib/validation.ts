@@ -3,11 +3,15 @@ export function isUuid(value: string) {
 }
 
 export function readText(value: FormDataEntryValue | null) {
-  return String(value ?? "").replace(/\s+/g, " ").trim();
+  return String(value ?? "")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 export function readNote(value: FormDataEntryValue | null) {
-  return String(value ?? "").replace(/\r\n/g, "\n").trim();
+  return String(value ?? "")
+    .replace(/\r\n/g, "\n")
+    .trim();
 }
 
 export function boundedText(value: string, label: string, min: number, max: number) {
@@ -51,13 +55,18 @@ export function readAge(value: string) {
 
 export function readMoney(value: string, label: string, allowZero: boolean) {
   if (!/^\d+(\.\d{1,2})?$/.test(value)) {
-    return { ok: false as const, error: `${label} must be a positive amount with up to 2 decimal places.` };
+    return {
+      ok: false as const,
+      error: `${label} must be a positive amount with up to 2 decimal places.`,
+    };
   }
   const amount = Math.round(Number(value) * 100) / 100;
   if (!Number.isFinite(amount) || amount > 1_000_000 || (allowZero ? amount < 0 : amount <= 0)) {
     return {
       ok: false as const,
-      error: allowZero ? `${label} must be from 0 to 10,00,000.` : `${label} must be greater than 0 and at most 10,00,000.`,
+      error: allowZero
+        ? `${label} must be from 0 to 10,00,000.`
+        : `${label} must be greater than 0 and at most 10,00,000.`,
     };
   }
   return { ok: true as const, amount };
@@ -123,11 +132,3 @@ export const BED_STATUS_LABELS = {
   OCCUPIED: "Occupied",
   MAINTENANCE: "Maintenance",
 } as const;
-
-export function pageNumber(value: string | undefined) {
-  const page = Number(value);
-  if (!Number.isInteger(page) || page < 1) {
-    return 1;
-  }
-  return Math.min(page, 500);
-}

@@ -13,10 +13,7 @@ import {
   startVisitAction,
   updateStockAction,
 } from "@/app/actions/hospital";
-import {
-  DoctorCombobox,
-  type DoctorChoice,
-} from "@/components/doctors/doctor-combobox";
+import { DoctorCombobox, type DoctorChoice } from "@/components/doctors/doctor-combobox";
 import { Field, FormMessage, SelectField } from "@/components/field";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -58,19 +55,10 @@ export function RegisterPatientForm({
   visitTypes: VisitTypeName[];
   doctors: DoctorChoice[];
 }) {
-  const [state, action, pending] = useActionState(
-    registerPatientAction,
-    idleState,
-  );
+  const [state, action, pending] = useActionState(registerPatientAction, idleState);
   return (
     <form action={action} className="grid gap-4 sm:grid-cols-2">
-      <Field
-        label="Name"
-        name="name"
-        required
-        autoComplete="name"
-        error={state.errors?.name}
-      />
+      <Field label="Name" name="name" required autoComplete="name" error={state.errors?.name} />
       <Field
         label="Phone"
         name="phone"
@@ -79,12 +67,7 @@ export function RegisterPatientForm({
         autoComplete="tel"
         error={state.errors?.phone}
       />
-      <Field
-        label="Age"
-        name="age"
-        inputMode="numeric"
-        error={state.errors?.age}
-      />
+      <Field label="Age" name="age" inputMode="numeric" error={state.errors?.age} />
       <SelectField
         label="Gender"
         name="gender"
@@ -98,10 +81,7 @@ export function RegisterPatientForm({
         error={state.errors?.address}
         className="sm:col-span-2"
       />
-      <DoctorCombobox
-        doctors={doctors}
-        error={state.errors?.referringDoctorId}
-      />
+      <DoctorCombobox doctors={doctors} error={state.errors?.referringDoctorId} />
       <Field
         label="Consultation fee (INR)"
         name="consultationFee"
@@ -133,10 +113,7 @@ export function StartVisitForm({
   return (
     <form action={action} className="grid gap-4 sm:grid-cols-2">
       <input type="hidden" name="patientId" value={patientId} />
-      <DoctorCombobox
-        doctors={doctors}
-        error={state.errors?.referringDoctorId}
-      />
+      <DoctorCombobox doctors={doctors} error={state.errors?.referringDoctorId} />
       <Field
         label="Consultation fee (INR)"
         name="consultationFee"
@@ -155,13 +132,7 @@ export function StartVisitForm({
   );
 }
 
-function VisitTypeField({
-  visitTypes,
-  error,
-}: {
-  visitTypes: VisitTypeName[];
-  error?: string;
-}) {
+function VisitTypeField({ visitTypes, error }: { visitTypes: VisitTypeName[]; error?: string }) {
   if (visitTypes.length === 1) {
     return (
       <FieldRoot>
@@ -182,13 +153,7 @@ function VisitTypeField({
   );
 }
 
-export function ClinicalNoteForm({
-  visitId,
-  note,
-}: {
-  visitId: string;
-  note: string;
-}) {
+export function ClinicalNoteForm({ visitId, note }: { visitId: string; note: string }) {
   const [state, action, pending] = useActionState(saveNoteAction, idleState);
   return (
     <form action={action} className="flex flex-col gap-3">
@@ -203,9 +168,7 @@ export function ClinicalNoteForm({
           maxLength={4000}
           aria-invalid={state.errors?.clinicalNote ? true : undefined}
         />
-        {state.errors?.clinicalNote ? (
-          <FieldError>{state.errors.clinicalNote}</FieldError>
-        ) : null}
+        {state.errors?.clinicalNote ? <FieldError>{state.errors.clinicalNote}</FieldError> : null}
       </FieldRoot>
       <div className="flex items-center justify-between gap-3">
         <FormMessage message={state.message} ok={state.ok} />
@@ -270,12 +233,7 @@ export function ChargeForm({ visitId }: { visitId: string }) {
           </SelectContent>
         </Select>
       </FieldRoot>
-      <Field
-        label="Service"
-        name="serviceName"
-        required
-        error={state.errors?.serviceName}
-      />
+      <Field label="Service" name="serviceName" required error={state.errors?.serviceName} />
       <Field
         label="Quantity"
         name="quantity"
@@ -302,10 +260,7 @@ export function ChargeForm({ visitId }: { visitId: string }) {
 }
 
 export function DischargeForm({ visitId }: { visitId: string }) {
-  const [state, action, pending] = useActionState(
-    dischargeVisitAction,
-    idleState,
-  );
+  const [state, action, pending] = useActionState(dischargeVisitAction, idleState);
   return (
     <form action={action} className="flex flex-col gap-3">
       <input type="hidden" name="visitId" value={visitId} />
@@ -361,12 +316,7 @@ export function CreateBedForm() {
   }, [state]);
   return (
     <form ref={formRef} action={action} className="grid gap-4 sm:grid-cols-2">
-      <Field
-        label="Bed number"
-        name="bedNumber"
-        required
-        error={state.errors?.bedNumber}
-      />
+      <Field label="Bed number" name="bedNumber" required error={state.errors?.bedNumber} />
       <SelectField
         label="Ward"
         name="wardType"
@@ -394,10 +344,7 @@ export function BedStatusForm({
   bedId: string;
   status: "AVAILABLE" | "MAINTENANCE";
 }) {
-  const [state, action, pending] = useActionState(
-    setBedStatusAction,
-    idleState,
-  );
+  const [state, action, pending] = useActionState(setBedStatusAction, idleState);
   const next = status === "AVAILABLE" ? "MAINTENANCE" : "AVAILABLE";
   return (
     <form action={action} className="flex flex-col gap-1">
@@ -419,12 +366,7 @@ export function CreateItemForm() {
   }, [state]);
   return (
     <form ref={formRef} action={action} className="grid gap-4 sm:grid-cols-2">
-      <Field
-        label="Item"
-        name="itemName"
-        required
-        error={state.errors?.itemName}
-      />
+      <Field label="Item" name="itemName" required error={state.errors?.itemName} />
       <SelectField
         label="Category"
         name="category"
@@ -435,13 +377,7 @@ export function CreateItemForm() {
           label: category,
         }))}
       />
-      <Field
-        label="Unit"
-        name="unit"
-        required
-        placeholder="Pieces"
-        error={state.errors?.unit}
-      />
+      <Field label="Unit" name="unit" required placeholder="Pieces" error={state.errors?.unit} />
       <Field
         label="Quantity"
         name="quantity"
@@ -460,13 +396,7 @@ export function CreateItemForm() {
   );
 }
 
-export function StockForm({
-  itemId,
-  quantity,
-}: {
-  itemId: string;
-  quantity: number;
-}) {
+export function StockForm({ itemId, quantity }: { itemId: string; quantity: number }) {
   const [state, action, pending] = useActionState(updateStockAction, idleState);
   return (
     <form action={action} className="flex flex-wrap items-center gap-2">
@@ -497,12 +427,7 @@ export function ExpenseForm() {
   }, [state]);
   return (
     <form ref={formRef} action={action} className="grid gap-4 sm:grid-cols-2">
-      <Field
-        label="Description"
-        name="description"
-        required
-        error={state.errors?.description}
-      />
+      <Field label="Description" name="description" required error={state.errors?.description} />
       <Field
         label="Amount (INR)"
         name="amount"
@@ -522,12 +447,7 @@ export function ExpenseForm() {
 
 export function PrintButton() {
   return (
-    <Button
-      type="button"
-      variant="outline"
-      className="print:hidden"
-      onClick={() => window.print()}
-    >
+    <Button type="button" variant="outline" className="print:hidden" onClick={() => window.print()}>
       Print receipt
     </Button>
   );

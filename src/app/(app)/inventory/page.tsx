@@ -1,25 +1,46 @@
-import { CreateItemForm, ExpenseForm, StockForm } from "@/components/hospital/forms";
+import { Suspense } from "react";
+import { CreateItemForm, ExpenseForm } from "@/components/hospital/forms";
+import { DataTableSkeleton } from "@/components/data-table/data-table-skeleton";
+import { RecordCount } from "@/components/data-table/record-count";
+import { TableControlMenu } from "@/components/data-table/table-control-menu";
+import { ExpensesTable, StockTable } from "@/components/tables/directory-tables";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Empty, EmptyDescription, EmptyHeader } from "@/components/ui/empty";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { requirePermission } from "@/lib/auth";
-import { formatMoney, formatWhen } from "@/lib/format";
-import { listExpenses, listInventory } from "@/lib/hospital";
+import { queryExpenses, queryStock } from "@/lib/record-queries";
 import { can } from "@/lib/permissions";
+import {
+  expenseFilters,
+  expenseQueryKeys,
+  inventorySearch,
+  readDataTableQuery,
+  readTableMode,
+  stockFilters,
+  stockQueryKeys,
+} from "@/lib/table-search";
 
-export default async function InventoryPage() {
+export default async function InventoryPage({ searchParams }: PageProps<"/inventory">) {
   const user = await requirePermission("inventory:view");
-  const [items, expenses] = await Promise.all([
-    listInventory(),
-    can(user.role, "expenses:view") ? listExpenses() : Promise.resolve(null),
-  ]);
+  const parsed = await inventorySearch.parse(searchParams);
+  const { dataMode, filterMode } = readTableMode(parsed);
   const manage = can(user.role, "inventory:manage");
+  const seeExpenses = can(user.role, "expenses:view");
+  const [stock, expenses] = await Promise.all([
+    queryStock(readDataTableQuery(parsed, stockFilters, stockQueryKeys), dataMode),
+    seeExpenses
+      ? queryExpenses(readDataTableQuery(parsed, expenseFilters, expenseQueryKeys), dataMode)
+      : Promise.resolve(null),
+  ]);
 
   return (
-    <main className="flex flex-col gap-8">
+    <main className="flex min-w-0 flex-col gap-8">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">Inventory</h1>
-        <p className="mt-1 text-sm text-muted-foreground">Stock quantities and daily expenses recorded by the signed-in user.</p>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Stock quantities and daily expenses recorded by the signed-in user.
+        </p>
+        <Suspense fallback={null}>
+          <TableControlMenu />
+        </Suspense>
       </div>
 
       {manage ? (
@@ -36,48 +57,21 @@ export default async function InventoryPage() {
       <Card>
         <CardHeader className="border-b">
           <CardTitle>Stock</CardTitle>
+          <CardDescription>
+            <RecordCount total={stock.total} capped={stock.capped} />
+          </CardDescription>
         </CardHeader>
-        {items.length === 0 ? (
-          <CardContent>
-            <Empty className="border-0">
-              <EmptyHeader>
-                <EmptyDescription>No items yet.</EmptyDescription>
-              </EmptyHeader>
-            </Empty>
-          </CardContent>
-        ) : (
-          <Table className="min-w-[40rem]">
-            <TableHeader>
-              <TableRow>
-                <TableHead>Item</TableHead>
-                <TableHead>Category</TableHead>
-                <TableHead>Quantity</TableHead>
-                <TableHead>Updated</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {items.map((item) => (
-                <TableRow key={item.id}>
-                  <TableCell className="font-medium">{item.itemName}</TableCell>
-                  <TableCell>{item.category ?? "—"}</TableCell>
-                  <TableCell>
-                    {manage ? (
-                      <span className="inline-flex items-center gap-2">
-                        <StockForm itemId={item.id} quantity={item.quantity} />
-                        <span className="text-muted-foreground">{item.unit}</span>
-                      </span>
-                    ) : (
-                      <span>
-                        {item.quantity} {item.unit}
-                      </span>
-                    )}
-                  </TableCell>
-                  <TableCell className="text-muted-foreground">{formatWhen(item.lastUpdated)}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        )}
+        <CardContent className="py-4">
+          <Suspense fallback={<DataTableSkeleton columnCount={6} filterCount={4} />}>
+            <StockTable
+              data={stock.rows}
+              pageCount={stock.pageCount}
+              dataMode={dataMode}
+              filterMode={filterMode}
+              manage={manage}
+            />
+          </Suspense>
+        </CardContent>
       </Card>
 
       {can(user.role, "expenses:create") ? (
@@ -97,38 +91,21 @@ export default async function InventoryPage() {
       {expenses ? (
         <Card>
           <CardHeader className="border-b">
-            <CardTitle>Recent expenses</CardTitle>
+            <CardTitle>Expenses</CardTitle>
+            <CardDescription>
+              <RecordCount total={expenses.total} capped={expenses.capped} />
+            </CardDescription>
           </CardHeader>
-          {expenses.length === 0 ? (
-            <CardContent>
-              <Empty className="border-0">
-                <EmptyHeader>
-                  <EmptyDescription>No expenses recorded.</EmptyDescription>
-                </EmptyHeader>
-              </Empty>
-            </CardContent>
-          ) : (
-            <Table className="min-w-[36rem]">
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Description</TableHead>
-                  <TableHead>Amount</TableHead>
-                  <TableHead>By</TableHead>
-                  <TableHead>When</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {expenses.map((expense) => (
-                  <TableRow key={expense.id}>
-                    <TableCell>{expense.description}</TableCell>
-                    <TableCell>{formatMoney(expense.amount)}</TableCell>
-                    <TableCell>{expense.loggedBy.name}</TableCell>
-                    <TableCell className="text-muted-foreground">{formatWhen(expense.expenseDate)}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
+          <CardContent className="py-4">
+            <Suspense fallback={<DataTableSkeleton columnCount={5} filterCount={3} />}>
+              <ExpensesTable
+                data={expenses.rows}
+                pageCount={expenses.pageCount}
+                dataMode={dataMode}
+                filterMode={filterMode}
+              />
+            </Suspense>
+          </CardContent>
         </Card>
       ) : null}
     </main>

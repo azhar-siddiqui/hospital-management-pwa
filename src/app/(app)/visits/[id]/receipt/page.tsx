@@ -2,7 +2,15 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { PrintButton } from "@/components/hospital/forms";
 import { Button } from "@/components/ui/button";
-import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableFooter,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { requirePermission } from "@/lib/auth";
 import { formatMoney, formatWhen, roundMoney } from "@/lib/format";
 import { getVisit } from "@/lib/hospital";
@@ -13,13 +21,20 @@ export default async function ReceiptPage({ params }: { params: Promise<{ id: st
   const visit = await getVisit(id);
   if (!visit) notFound();
 
-  const chargesTotal = roundMoney(visit.serviceCharges.reduce((sum, charge) => sum + charge.total, 0));
+  const chargesTotal = roundMoney(
+    visit.serviceCharges.reduce((sum, charge) => sum + charge.total, 0),
+  );
   const billTotal = roundMoney(visit.consultationFee + chargesTotal);
 
   return (
     <main className="mx-auto flex w-full max-w-2xl flex-col gap-6">
       <div className="flex items-center justify-between print:hidden">
-        <Button nativeButton={false} variant="link" className="h-auto px-0" render={<Link href={`/visits/${visit.id}`} />}>
+        <Button
+          nativeButton={false}
+          variant="link"
+          className="h-auto px-0"
+          render={<Link href={`/visits/${visit.id}`} />}
+        >
           Back to visit
         </Button>
         <PrintButton />
@@ -60,8 +75,12 @@ export default async function ReceiptPage({ params }: { params: Promise<{ id: st
           </TableRow>
         </TableFooter>
       </Table>
-      {visit.referringDoctor ? <p className="text-sm">Referring doctor: {visit.referringDoctor}</p> : null}
-      <p className="text-xs text-muted-foreground">Amounts in INR. This is a billing summary, not a tax invoice.</p>
+      {visit.referringDoctor ? (
+        <p className="text-sm">Referring doctor: {visit.referringDoctor}</p>
+      ) : null}
+      <p className="text-xs text-muted-foreground">
+        Amounts in INR. This is a billing summary, not a tax invoice.
+      </p>
     </main>
   );
 }

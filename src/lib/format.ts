@@ -53,7 +53,14 @@ function zonedParts(date: Date, timeZone: string): ZonedParts {
 
 function offsetMs(date: Date, timeZone: string) {
   const parts = zonedParts(date, timeZone);
-  const clockAsUtc = Date.UTC(parts.year, parts.month - 1, parts.day, parts.hour, parts.minute, parts.second);
+  const clockAsUtc = Date.UTC(
+    parts.year,
+    parts.month - 1,
+    parts.day,
+    parts.hour,
+    parts.minute,
+    parts.second,
+  );
   return clockAsUtc - date.getTime();
 }
 
@@ -84,6 +91,24 @@ export function formatHospitalDay(date = new Date()) {
     month: "short",
     timeZone: hospitalTimeZone(),
   }).format(date);
+}
+
+export function formatDate(
+  date: Date | string | number | undefined,
+  opts: Intl.DateTimeFormatOptions = {},
+) {
+  if (!date) return "";
+  try {
+    return new Intl.DateTimeFormat("en-US", {
+      month: opts.month ?? "long",
+      day: opts.day ?? "numeric",
+      year: opts.year ?? "numeric",
+      timeZone: hospitalTimeZone(),
+      ...opts,
+    }).format(new Date(date));
+  } catch {
+    return "";
+  }
 }
 
 export function hospitalHour(date = new Date()) {

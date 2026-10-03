@@ -2,13 +2,6 @@ import { can } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
 import { boundedText, isUuid, optionalText, readPhone, readText } from "@/lib/validation";
 
-export async function listDoctors() {
-  return prisma.doctor.findMany({
-    orderBy: [{ name: "asc" }, { createdAt: "asc" }],
-    select: { id: true, name: true, specialty: true, phone: true, createdAt: true },
-  });
-}
-
 export async function doctorChoices() {
   const doctors = await prisma.doctor.findMany({
     orderBy: [{ name: "asc" }, { createdAt: "asc" }],
@@ -48,7 +41,10 @@ export function parseDoctor(formData: FormData) {
   };
 }
 
-export async function createDoctor(role: string, input: { name: string; specialty: string | null; phone: string | null }) {
+export async function createDoctor(
+  role: string,
+  input: { name: string; specialty: string | null; phone: string | null },
+) {
   if (!can(role, "doctors:manage")) {
     return { ok: false as const, message: "You do not have access to do that." };
   }
@@ -61,7 +57,8 @@ export async function createDoctor(role: string, input: { name: string; specialt
 
 export async function referringDoctorSnapshot(id: string | null) {
   if (!id) return { ok: true as const, id: null, name: null };
-  if (!isUuid(id)) return { ok: false as const, message: "Choose a referring doctor from the list." };
+  if (!isUuid(id))
+    return { ok: false as const, message: "Choose a referring doctor from the list." };
   const doctor = await prisma.doctor.findUnique({
     where: { id },
     select: { id: true, name: true },

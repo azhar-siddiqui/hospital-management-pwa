@@ -22,7 +22,6 @@ import {
   type WardTypeName,
 } from "@/lib/validation";
 
-const PAGE_SIZE = 20;
 const LOW_STOCK_AT = 5;
 
 export class OperationError extends Error {
@@ -48,40 +47,6 @@ function uniqueMessage(error: unknown, message: string) {
     return message;
   }
   return null;
-}
-
-export async function listPatients(query: string, page: number) {
-  const where = query
-    ? {
-        OR: [
-          { name: { contains: query, mode: "insensitive" as const } },
-          { phone: { contains: query } },
-        ],
-      }
-    : {};
-  const [patients, total] = await Promise.all([
-    prisma.patient.findMany({
-      where,
-      orderBy: { createdAt: "desc" },
-      skip: (page - 1) * PAGE_SIZE,
-      take: PAGE_SIZE,
-      select: {
-        id: true,
-        name: true,
-        phone: true,
-        age: true,
-        gender: true,
-        createdAt: true,
-        visits: {
-          orderBy: { admissionDate: "desc" },
-          take: 1,
-          select: { id: true, visitType: true, status: true, admissionDate: true },
-        },
-      },
-    }),
-    prisma.patient.count({ where }),
-  ]);
-  return { patients, total, pageSize: PAGE_SIZE };
 }
 
 export async function getPatient(id: string) {
@@ -133,7 +98,8 @@ export function parseRegistration(formData: FormData) {
   if (genderInput && !isGender(genderInput)) errors.gender = "Choose a gender.";
   const addressError = optionalText(address, "Address", 200);
   if (addressError) errors.address = addressError;
-  if (referringDoctorId && !isUuid(referringDoctorId)) errors.referringDoctorId = "Choose a referring doctor.";
+  if (referringDoctorId && !isUuid(referringDoctorId))
+    errors.referringDoctorId = "Choose a referring doctor.";
   const fee = readMoney(feeInput || "0", "Consultation fee", true);
   if (!fee.ok) errors.consultationFee = fee.error;
   if (!isVisitType(visitType)) errors.visitType = "Choose OPD or IPD.";
@@ -161,17 +127,21 @@ function permissionForVisit(visitType: VisitTypeName) {
   return visitType === "OPD" ? "visits:opd" : "visits:admit";
 }
 
-export async function registerPatient(actor: Actor, input: {
-  name: string;
-  phone: string;
-  age: number | null;
-  gender: string | null;
-  address: string | null;
-  referringDoctorId: string | null;
-  consultationFee: number;
-  visitType: VisitTypeName;
-}) {
-  const denied = deny(actor.role, "patients:register") ?? deny(actor.role, permissionForVisit(input.visitType));
+export async function registerPatient(
+  actor: Actor,
+  input: {
+    name: string;
+    phone: string;
+    age: number | null;
+    gender: string | null;
+    address: string | null;
+    referringDoctorId: string | null;
+    consultationFee: number;
+    visitType: VisitTypeName;
+  },
+) {
+  const denied =
+    deny(actor.role, "patients:register") ?? deny(actor.role, permissionForVisit(input.visitType));
   if (denied) return denied;
   const doctor = await referringDoctorSnapshot(input.referringDoctorId);
   if (!doctor.ok) return doctor;
@@ -206,7 +176,8 @@ export function parseVisitStart(formData: FormData) {
   const errors: Record<string, string> = {};
   const referringDoctorId = readText(formData.get("referringDoctorId"));
   const visitType = readText(formData.get("visitType"));
-  if (referringDoctorId && !isUuid(referringDoctorId)) errors.referringDoctorId = "Choose a referring doctor.";
+  if (referringDoctorId && !isUuid(referringDoctorId))
+    errors.referringDoctorId = "Choose a referring doctor.";
   const fee = readMoney(readText(formData.get("consultationFee")) || "0", "Consultation fee", true);
   if (!fee.ok) errors.consultationFee = fee.error;
   if (!isVisitType(visitType)) errors.visitType = "Choose OPD or IPD.";
@@ -223,11 +194,15 @@ export function parseVisitStart(formData: FormData) {
   };
 }
 
-export async function startVisit(actor: Actor, patientId: string, input: {
-  visitType: VisitTypeName;
-  referringDoctorId: string | null;
-  consultationFee: number;
-}) {
+export async function startVisit(
+  actor: Actor,
+  patientId: string,
+  input: {
+    visitType: VisitTypeName;
+    referringDoctorId: string | null;
+    consultationFee: number;
+  },
+) {
   const denied = deny(actor.role, permissionForVisit(input.visitType));
   if (denied) return denied;
   if (!isUuid(patientId)) return { ok: false as const, message: "Patient not found." };
@@ -235,25 +210,28 @@ export async function startVisit(actor: Actor, patientId: string, input: {
   if (!doctor.ok) return doctor;
 
   try {
-    const visit = await prisma.$transaction(async (tx) => {
-      const existing = await tx.visit.findFirst({
-        where: { patientId, visitType: input.visitType, status: "ACTIVE" },
-        select: { id: true },
-      });
-      if (existing) {
-        throw new OperationError(`This patient already has an active ${input.visitType} visit.`);
-      }
-      return tx.visit.create({
-        data: {
-          patientId,
-          visitType: input.visitType,
-          referringDoctor: doctor.name,
-          referringDoctorId: doctor.id,
-          consultationFee: input.consultationFee,
-        },
-        select: { id: true },
-      });
-    }, { isolationLevel: "Serializable" });
+    const visit = await prisma.$transaction(
+      async (tx) => {
+        const existing = await tx.visit.findFirst({
+          where: { patientId, visitType: input.visitType, status: "ACTIVE" },
+          select: { id: true },
+        });
+        if (existing) {
+          throw new OperationError(`This patient already has an active ${input.visitType} visit.`);
+        }
+        return tx.visit.create({
+          data: {
+            patientId,
+            visitType: input.visitType,
+            referringDoctor: doctor.name,
+            referringDoctorId: doctor.id,
+            consultationFee: input.consultationFee,
+          },
+          select: { id: true },
+        });
+      },
+      { isolationLevel: "Serializable" },
+    );
     return { ok: true as const, visitId: visit.id };
   } catch (error) {
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2003") {
@@ -284,7 +262,14 @@ export async function getVisit(id: string) {
       bed: { select: { id: true, bedNumber: true, wardType: true } },
       serviceCharges: {
         orderBy: { createdAt: "asc" },
-        select: { id: true, serviceName: true, quantity: true, unitPrice: true, total: true, createdAt: true },
+        select: {
+          id: true,
+          serviceName: true,
+          quantity: true,
+          unitPrice: true,
+          total: true,
+          createdAt: true,
+        },
       },
     },
   });
@@ -306,11 +291,15 @@ export async function saveClinicalNote(actor: Actor, visitId: string, note: stri
   return { ok: true as const };
 }
 
-export async function addServiceCharge(actor: Actor, visitId: string, input: {
-  serviceName: string;
-  quantity: number;
-  unitPrice: number;
-}) {
+export async function addServiceCharge(
+  actor: Actor,
+  visitId: string,
+  input: {
+    serviceName: string;
+    quantity: number;
+    unitPrice: number;
+  },
+) {
   const denied = deny(actor.role, "visits:charge");
   if (denied) return denied;
   if (!isUuid(visitId)) return { ok: false as const, message: "Visit not found." };
@@ -353,7 +342,10 @@ export function parseCharge(formData: FormData) {
   if (Object.keys(errors).length > 0 || !quantity.ok || !price.ok) {
     return { ok: false as const, errors };
   }
-  return { ok: true as const, data: { serviceName, quantity: quantity.quantity, unitPrice: price.amount } };
+  return {
+    ok: true as const,
+    data: { serviceName, quantity: quantity.quantity, unitPrice: price.amount },
+  };
 }
 
 export function parseNote(formData: FormData) {
@@ -448,7 +440,11 @@ export function parseBed(formData: FormData) {
   return { ok: true as const, data: { bedNumber, wardType } };
 }
 
-export async function setBedAvailability(actor: Actor, bedId: string, status: "AVAILABLE" | "MAINTENANCE") {
+export async function setBedAvailability(
+  actor: Actor,
+  bedId: string,
+  status: "AVAILABLE" | "MAINTENANCE",
+) {
   const denied = deny(actor.role, "beds:manage");
   if (denied) return denied;
   if (!isUuid(bedId)) return { ok: false as const, message: "Bed not found." };
@@ -458,7 +454,10 @@ export async function setBedAvailability(actor: Actor, bedId: string, status: "A
     data: { status },
   });
   if (updated.count !== 1) {
-    return { ok: false as const, message: "Only an empty bed can move between available and maintenance." };
+    return {
+      ok: false as const,
+      message: "Only an empty bed can move between available and maintenance.",
+    };
   }
   return { ok: true as const };
 }
@@ -498,19 +497,15 @@ export async function assignBed(actor: Actor, visitId: string, bedId: string) {
   }
 }
 
-export async function listInventory() {
-  return prisma.inventory.findMany({
-    orderBy: { itemName: "asc" },
-    select: { id: true, itemName: true, category: true, quantity: true, unit: true, lastUpdated: true },
-  });
-}
-
-export async function createInventoryItem(actor: Actor, input: {
-  itemName: string;
-  category: string;
-  quantity: number;
-  unit: string;
-}) {
+export async function createInventoryItem(
+  actor: Actor,
+  input: {
+    itemName: string;
+    category: string;
+    quantity: number;
+    unit: string;
+  },
+) {
   const denied = deny(actor.role, "inventory:manage");
   if (denied) return denied;
   try {
@@ -553,20 +548,6 @@ export async function updateStock(actor: Actor, itemId: string, quantity: number
   return { ok: true as const };
 }
 
-export async function listExpenses() {
-  return prisma.expense.findMany({
-    orderBy: { expenseDate: "desc" },
-    take: 50,
-    select: {
-      id: true,
-      description: true,
-      amount: true,
-      expenseDate: true,
-      loggedBy: { select: { name: true } },
-    },
-  });
-}
-
 export async function logExpense(actor: Actor, input: { description: string; amount: number }) {
   const denied = deny(actor.role, "expenses:create");
   if (denied) return denied;
@@ -590,30 +571,31 @@ export function parseExpense(formData: FormData) {
 export async function getDashboard(role: string) {
   const allow = can;
   const start = startOfHospitalDay();
-  const [activeOpd, activeIpd, available, occupied, maintenance, patientsToday, recent] = await Promise.all([
-    prisma.visit.count({ where: { status: "ACTIVE", visitType: "OPD" } }),
-    prisma.visit.count({ where: { status: "ACTIVE", visitType: "IPD" } }),
-    prisma.bed.count({ where: { status: "AVAILABLE" } }),
-    prisma.bed.count({ where: { status: "OCCUPIED" } }),
-    prisma.bed.count({ where: { status: "MAINTENANCE" } }),
-    allow(role, "patients:view")
-      ? prisma.patient.count({ where: { createdAt: { gte: start } } })
-      : Promise.resolve(0),
-    allow(role, "patients:view")
-      ? prisma.visit.findMany({
-          orderBy: { admissionDate: "desc" },
-          take: 8,
-          select: {
-            id: true,
-            visitType: true,
-            status: true,
-            admissionDate: true,
-            patient: { select: { name: true } },
-            bed: { select: { bedNumber: true } },
-          },
-        })
-      : Promise.resolve([]),
-  ]);
+  const [activeOpd, activeIpd, available, occupied, maintenance, patientsToday, recent] =
+    await Promise.all([
+      prisma.visit.count({ where: { status: "ACTIVE", visitType: "OPD" } }),
+      prisma.visit.count({ where: { status: "ACTIVE", visitType: "IPD" } }),
+      prisma.bed.count({ where: { status: "AVAILABLE" } }),
+      prisma.bed.count({ where: { status: "OCCUPIED" } }),
+      prisma.bed.count({ where: { status: "MAINTENANCE" } }),
+      allow(role, "patients:view")
+        ? prisma.patient.count({ where: { createdAt: { gte: start } } })
+        : Promise.resolve(0),
+      allow(role, "patients:view")
+        ? prisma.visit.findMany({
+            orderBy: { admissionDate: "desc" },
+            take: 8,
+            select: {
+              id: true,
+              visitType: true,
+              status: true,
+              admissionDate: true,
+              patient: { select: { name: true } },
+              bed: { select: { bedNumber: true } },
+            },
+          })
+        : Promise.resolve([]),
+    ]);
 
   const [fees, charges, expenses, lowStock] = await Promise.all([
     allow(role, "reports:fees")
@@ -658,5 +640,3 @@ export async function getDashboard(role: string) {
     lowStockAt: LOW_STOCK_AT,
   };
 }
-
-export { PAGE_SIZE };
