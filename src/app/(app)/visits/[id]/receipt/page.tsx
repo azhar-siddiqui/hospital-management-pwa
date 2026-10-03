@@ -1,5 +1,3 @@
-import Link from "next/link";
-import { notFound } from "next/navigation";
 import { PrintButton } from "@/components/hospital/forms";
 import { Button } from "@/components/ui/button";
 import {
@@ -14,6 +12,8 @@ import {
 import { requirePermission } from "@/lib/auth";
 import { formatMoney, formatWhen, roundMoney } from "@/lib/format";
 import { getVisit } from "@/lib/hospital";
+import Link from "next/link";
+import { notFound } from "next/navigation";
 
 export default async function ReceiptPage({ params }: { params: Promise<{ id: string }> }) {
   await requirePermission("patients:view");
