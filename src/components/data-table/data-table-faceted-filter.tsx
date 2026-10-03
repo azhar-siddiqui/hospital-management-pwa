@@ -7,6 +7,7 @@ import { type Column, type RowData, Subscribe } from "@tanstack/react-table";
 import type { DataTableFeatures } from "@/lib/data-table-features";
 import type { Option } from "@/lib/data-table-types";
 
+import { IconPlaceholder } from "@/components/icon-placeholder";
 import { Button } from "@/components/ui/button";
 import {
   Faceted,
@@ -23,7 +24,6 @@ import {
   FacetedValue,
 } from "@/components/ui/faceted";
 import { Separator } from "@/components/ui/separator";
-import { IconPlaceholder } from "@/components/icon-placeholder";
 
 interface DataTableFacetedFilterProps<TData extends RowData, TValue> {
   column?: Column<DataTableFeatures, TData, TValue>;

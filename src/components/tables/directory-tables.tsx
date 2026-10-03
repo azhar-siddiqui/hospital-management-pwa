@@ -135,6 +135,19 @@ function dateCell(value: number) {
   return <span className="text-muted-foreground">{formatWhen(new Date(value))}</span>;
 }
 
+function LatestVisitLabel({ label }: { label: string }) {
+  const separator = " · ";
+  const first = label.indexOf(separator);
+  const second = first === -1 ? -1 : label.indexOf(separator, first + separator.length);
+  if (second === -1) return label;
+  return (
+    <span className="flex min-w-0 flex-col whitespace-normal leading-5">
+      <span>{label.slice(0, second)}</span>
+      <span className="text-muted-foreground">{label.slice(second + separator.length)}</span>
+    </span>
+  );
+}
+
 export function PatientsTable({
   data,
   pageCount,
@@ -205,6 +218,7 @@ export function PatientsTable({
         id: "latestVisit",
         accessorKey: "latestVisit",
         header: header("Latest visit"),
+        cell: ({ row }) => <LatestVisitLabel label={row.original.latestVisit} />,
         meta: { label: "Latest visit" },
         enableSorting: false,
         enableColumnFilter: false,

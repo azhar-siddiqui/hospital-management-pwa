@@ -7,6 +7,7 @@ import { cn } from "cn";
 
 import type { DataTableFeatures } from "@/lib/data-table-features";
 
+import { IconPlaceholder } from "@/components/icon-placeholder";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -16,7 +17,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { IconPlaceholder } from "@/components/icon-placeholder";
 
 interface DataTablePaginationProps<TData extends RowData> extends React.ComponentProps<"div"> {
   table: Table<DataTableFeatures, TData>;
@@ -100,7 +100,7 @@ function DataTablePaginationContent<TData extends RowData>({
             <SelectTrigger className="w-18">
               <SelectValue placeholder={pageSize} />
             </SelectTrigger>
-            <SelectContent side="top">
+            <SelectContent side="top" alignItemWithTrigger={false}>
               <SelectGroup>
                 {pageSizeOptions.map((pageSize) => (
                   <SelectItem key={pageSize} value={`${pageSize}`}>

@@ -10,6 +10,7 @@ import { DataTableDateFilter } from "@/components/data-table/data-table-date-fil
 import { DataTableFacetedFilter } from "@/components/data-table/data-table-faceted-filter";
 import { DataTableSliderFilter } from "@/components/data-table/data-table-slider-filter";
 import { DataTableViewOptions } from "@/components/data-table/data-table-view-options";
+import { IconPlaceholder } from "@/components/icon-placeholder";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -20,7 +21,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { IconPlaceholder } from "@/components/icon-placeholder";
 
 interface DataTableToolbarProps<TData extends RowData> extends React.ComponentProps<"div"> {
   table: Table<DataTableFeatures, TData>;
@@ -175,7 +175,7 @@ function DataTableBooleanFilter<TData extends RowData>({
           <SelectTrigger className="w-36" aria-label={title}>
             <SelectValue placeholder={title} />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent alignItemWithTrigger={false}>
             <SelectGroup>
               <SelectItem value="true">Yes</SelectItem>
               <SelectItem value="false">No</SelectItem>

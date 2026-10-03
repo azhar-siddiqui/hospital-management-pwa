@@ -6,7 +6,7 @@ const MONEY = new Intl.NumberFormat("en-IN", {
 });
 
 export function hospitalTimeZone() {
-  const configured = process.env.HOSPITAL_TIMEZONE || "UTC";
+  const configured = process.env.HOSPITAL_TIMEZONE || "Asia/Kolkata";
   try {
     new Intl.DateTimeFormat("en-US", { timeZone: configured });
     return configured;

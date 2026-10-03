@@ -7,20 +7,10 @@ import * as React from "react";
 import type { DataTableFeatures } from "@/lib/data-table-features";
 import type { ColumnFilterItem, Option } from "@/lib/data-table-types";
 
-import {
-  getColumnFilterDefaults,
-  getDateFilterLabel,
-  getFilterDates,
-  getFilterOperators,
-  getFilterValueForOperator,
-  getIsEditableTarget,
-  getIsValuelessOperator,
-  getSelectFilterValue,
-  toFilterTimestamp,
-} from "@/lib/data-table-utils";
-import { generateId } from "@/lib/id";
 import { DataTableRangeFilter } from "@/components/data-table/data-table-range-filter";
+import { IconPlaceholder } from "@/components/icon-placeholder";
 import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
 import {
   Command,
   CommandEmpty,
@@ -50,8 +40,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Calendar } from "@/components/ui/calendar";
-import { IconPlaceholder } from "@/components/icon-placeholder";
+import {
+  getColumnFilterDefaults,
+  getDateFilterLabel,
+  getFilterDates,
+  getFilterOperators,
+  getFilterValueForOperator,
+  getIsEditableTarget,
+  getIsValuelessOperator,
+  getSelectFilterValue,
+  toFilterTimestamp,
+} from "@/lib/data-table-utils";
+import { generateId } from "@/lib/id";
 
 const FILTER_SHORTCUT_KEY = "f";
 const REMOVE_FILTER_SHORTCUTS = ["backspace", "delete"];
@@ -595,7 +595,7 @@ function FilterOperatorSelector({
       >
         <SelectValue placeholder={filter.operator} />
       </SelectTrigger>
-      <SelectContent id={listboxId}>
+      <SelectContent id={listboxId} alignItemWithTrigger={false}>
         <SelectGroup>
           {getFilterOperators(filter.variant).map((operator) => (
             <SelectItem key={operator.value} value={operator.value} className="lowercase">
@@ -704,7 +704,7 @@ function BooleanFilterValue<TData extends RowData>({
       >
         <SelectValue />
       </SelectTrigger>
-      <SelectContent id={listboxId}>
+      <SelectContent id={listboxId} alignItemWithTrigger={false}>
         <SelectGroup>
           <SelectItem value="true">True</SelectItem>
           <SelectItem value="false">False</SelectItem>

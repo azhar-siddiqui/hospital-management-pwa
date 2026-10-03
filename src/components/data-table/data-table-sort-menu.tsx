@@ -12,7 +12,7 @@ import * as React from "react";
 
 import type { DataTableFeatures } from "@/lib/data-table-features";
 
-import { SORT_ORDERS } from "@/lib/data-table-utils";
+import { IconPlaceholder } from "@/components/icon-placeholder";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -42,7 +42,7 @@ import {
   SortableItemHandle,
   SortableOverlay,
 } from "@/components/ui/sortable";
-import { IconPlaceholder } from "@/components/icon-placeholder";
+import { SORT_ORDERS } from "@/lib/data-table-utils";
 
 const SORT_SHORTCUT_KEY = "s";
 const REMOVE_SORT_SHORTCUTS = ["backspace", "delete"];
@@ -361,7 +361,11 @@ function DataTableSortItem({
         <SelectTrigger aria-controls={directionListboxId} className="w-24">
           <SelectValue />
         </SelectTrigger>
-        <SelectContent id={directionListboxId} className="min-w-(--anchor-width)">
+        <SelectContent
+          id={directionListboxId}
+          className="min-w-(--anchor-width)"
+          alignItemWithTrigger={false}
+        >
           <SelectGroup>
             {SORT_ORDERS.map((order) => (
               <SelectItem key={order.value} value={order.value}>

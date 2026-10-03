@@ -1,13 +1,13 @@
-import { Suspense } from "react";
-import { CreateUserForm } from "@/components/staff/create-user-form";
 import { DataTableSkeleton } from "@/components/data-table/data-table-skeleton";
 import { RecordCount } from "@/components/data-table/record-count";
 import { TableControlMenu } from "@/components/data-table/table-control-menu";
+import { CreateUserForm } from "@/components/staff/create-user-form";
 import { StaffTable } from "@/components/tables/directory-tables";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { requireAdmin } from "@/lib/auth";
 import { queryStaff } from "@/lib/record-queries";
 import { readDataTableQuery, readTableMode, staffFilters, staffSearch } from "@/lib/table-search";
+import { Suspense } from "react";
 
 export default async function StaffPage({ searchParams }: PageProps<"/staff">) {
   await requireAdmin();
@@ -39,22 +39,10 @@ export default async function StaffPage({ searchParams }: PageProps<"/staff">) {
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader className="border-b">
-          <CardTitle>People</CardTitle>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-3 py-4">
-          <Suspense fallback={<DataTableSkeleton columnCount={6} filterCount={4} />}>
-            <TableControlMenu />
-            <StaffTable
-              data={rows}
-              pageCount={pageCount}
-              dataMode={dataMode}
-              filterMode={filterMode}
-            />
-          </Suspense>
-        </CardContent>
-      </Card>
+      <Suspense fallback={<DataTableSkeleton columnCount={6} filterCount={4} />}>
+        <TableControlMenu />
+        <StaffTable data={rows} pageCount={pageCount} dataMode={dataMode} filterMode={filterMode} />
+      </Suspense>
     </main>
   );
 }
