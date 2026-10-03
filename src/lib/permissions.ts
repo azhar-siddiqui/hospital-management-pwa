@@ -82,6 +82,9 @@ export function permissionForPath(pathname: string): Permission | null {
   if (pathname === "/beds" || pathname.startsWith("/beds/")) {
     return "beds:view";
   }
+  if (pathname === "/patients/new") {
+    return "patients:register";
+  }
   if (
     pathname === "/patients" ||
     pathname.startsWith("/patients/") ||

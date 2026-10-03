@@ -1,7 +1,5 @@
 "use client";
 
-import type { ComponentType, ReactNode } from "react";
-import { parseAsStringEnum, useQueryState } from "nuqs";
 import {
   IconAdjustments,
   IconCommand,
@@ -9,6 +7,8 @@ import {
   IconDeviceDesktop,
   IconFilter,
 } from "@tabler/icons-react";
+import { parseAsStringEnum, useQueryState } from "nuqs";
+import type { ComponentType, ReactNode } from "react";
 
 import { Separator } from "@/components/ui/separator";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
@@ -94,7 +94,7 @@ export function TableControlMenu() {
           ))}
         </ToggleGroup>
       </ControlGroup>
-      <Separator orientation="vertical" className="h-4 max-sm:hidden" />
+      <Separator orientation="vertical" className=" max-sm:hidden" />
       <ControlGroup label="Filter">
         <ToggleGroup
           variant="outline"

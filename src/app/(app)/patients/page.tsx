@@ -1,21 +1,20 @@
-import { Suspense } from "react";
-import { RegisterPatientForm } from "@/components/hospital/forms";
 import { DataTableSkeleton } from "@/components/data-table/data-table-skeleton";
 import { RecordCount } from "@/components/data-table/record-count";
 import { TableControlMenu } from "@/components/data-table/table-control-menu";
 import { PatientsTable } from "@/components/tables/directory-tables";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { requirePermission } from "@/lib/auth";
-import { doctorChoices } from "@/lib/doctors";
-import { queryPatients } from "@/lib/record-queries";
 import { can } from "@/lib/permissions";
+import { queryPatients } from "@/lib/record-queries";
 import {
   patientFilters,
   patientSearch,
   readDataTableQuery,
   readTableMode,
 } from "@/lib/table-search";
-import type { VisitTypeName } from "@/lib/validation";
+import { IconPlus } from "@tabler/icons-react";
+import Link from "next/link";
+import { Suspense } from "react";
 
 export default async function PatientsPage({ searchParams }: PageProps<"/patients">) {
   const user = await requirePermission("patients:view");
@@ -23,50 +22,38 @@ export default async function PatientsPage({ searchParams }: PageProps<"/patient
   const { dataMode, filterMode } = readTableMode(parsed);
   const query = readDataTableQuery(parsed, patientFilters);
   const { rows, total, pageCount, capped } = await queryPatients(query, dataMode);
-  const visitTypes = (["OPD", "IPD"] as const).filter((type) =>
-    can(user.role, type === "OPD" ? "visits:opd" : "visits:admit"),
-  ) as VisitTypeName[];
-  const doctors =
-    can(user.role, "patients:register") && visitTypes.length > 0 ? await doctorChoices() : [];
+  const canAdd =
+    can(user.role, "patients:register") &&
+    (can(user.role, "visits:opd") || can(user.role, "visits:admit"));
 
   return (
     <main className="flex min-w-0 flex-col gap-8">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">Patients</h1>
-        <RecordCount total={total} capped={capped} />
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div className="min-w-0">
+          <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">Patients</h1>
+          <RecordCount total={total} capped={capped} />
+        </div>
+        {canAdd ? (
+          <Button
+            nativeButton={false}
+            className="w-full sm:w-auto"
+            render={<Link href="/patients/new" />}
+          >
+            <IconPlus />
+            Add patient
+          </Button>
+        ) : null}
       </div>
 
-      {can(user.role, "patients:register") && visitTypes.length > 0 ? (
-        <Card>
-          <CardHeader>
-            <CardTitle>Register</CardTitle>
-            <CardDescription>
-              Creates the patient and their first visit. A patient cannot have two active visits of
-              the same type.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <RegisterPatientForm visitTypes={visitTypes} doctors={doctors} />
-          </CardContent>
-        </Card>
-      ) : null}
-
-      <Card>
-        <CardHeader className="border-b">
-          <CardTitle>Directory</CardTitle>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-3 py-4">
-          <Suspense fallback={<DataTableSkeleton columnCount={6} filterCount={4} />}>
-            <TableControlMenu />
-            <PatientsTable
-              data={rows}
-              pageCount={pageCount}
-              dataMode={dataMode}
-              filterMode={filterMode}
-            />
-          </Suspense>
-        </CardContent>
-      </Card>
+      <Suspense fallback={<DataTableSkeleton columnCount={6} filterCount={4} />}>
+        <TableControlMenu />
+        <PatientsTable
+          data={rows}
+          pageCount={pageCount}
+          dataMode={dataMode}
+          filterMode={filterMode}
+        />
+      </Suspense>
     </main>
   );
 }
