@@ -20,13 +20,14 @@ export const PERMISSIONS = [
   "reports:charges",
   "reports:expenses",
   "staff:manage",
+  "doctors:manage",
 ] as const;
 
 export type Permission = (typeof PERMISSIONS)[number];
 
 const grants: Record<AppRole, readonly Permission[]> = {
   ADMIN: PERMISSIONS,
-  RECEPTIONIST: ["patients:view", "patients:register", "visits:opd", "beds:view", "reports:fees"],
+  RECEPTIONIST: ["patients:view", "patients:register", "visits:opd", "beds:view", "reports:fees", "doctors:manage"],
   DOCTOR: ["patients:view", "visits:note", "visits:discharge", "beds:view"],
   NURSE: [
     "patients:view",
@@ -65,6 +66,9 @@ export function permissionForPath(pathname: string): Permission | null {
   if (pathname === "/staff" || pathname.startsWith("/staff/")) {
     return "staff:manage";
   }
+  if (pathname === "/doctors" || pathname.startsWith("/doctors/")) {
+    return "doctors:manage";
+  }
   if (pathname === "/inventory" || pathname.startsWith("/inventory/")) {
     return "inventory:view";
   }
@@ -82,7 +86,7 @@ export function permissionForPath(pathname: string): Permission | null {
   return null;
 }
 
-const RETURN_PREFIXES = ["/staff", "/patients", "/visits", "/beds", "/inventory"];
+const RETURN_PREFIXES = ["/staff", "/patients", "/visits", "/beds", "/inventory", "/doctors"];
 
 export function safeReturnPath(value: string | null | undefined) {
   if (!value || !value.startsWith("/") || value.startsWith("//") || value.includes("\\") || value.includes("?") || value.includes("%")) {

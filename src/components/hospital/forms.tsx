@@ -1,6 +1,5 @@
 "use client";
 
-import { useActionState, useEffect, useState, useRef } from "react";
 import {
   addChargeAction,
   assignBedAction,
@@ -14,15 +13,37 @@ import {
   startVisitAction,
   updateStockAction,
 } from "@/app/actions/hospital";
+import {
+  DoctorCombobox,
+  type DoctorChoice,
+} from "@/components/doctors/doctor-combobox";
+import { Field, FormMessage, SelectField } from "@/components/field";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Field as FieldRoot, FieldDescription, FieldError, FieldLabel } from "@/components/ui/field";
+import {
+  FieldDescription,
+  FieldError,
+  FieldLabel,
+  Field as FieldRoot,
+} from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { Field, FormMessage, SelectField } from "@/components/field";
 import { idleState } from "@/lib/action-state";
-import { GENDERS, ITEM_CATEGORIES, WARD_LABELS, WARD_TYPES, type VisitTypeName } from "@/lib/validation";
+import {
+  GENDERS,
+  ITEM_CATEGORIES,
+  WARD_LABELS,
+  WARD_TYPES,
+  type VisitTypeName,
+} from "@/lib/validation";
+import { useActionState, useEffect, useRef, useState } from "react";
 
 const CHARGE_PRESETS = [
   { name: "ECG", price: "500" },
@@ -30,13 +51,40 @@ const CHARGE_PRESETS = [
   { name: "Blood Test", price: "300" },
 ];
 
-export function RegisterPatientForm({ visitTypes }: { visitTypes: VisitTypeName[] }) {
-  const [state, action, pending] = useActionState(registerPatientAction, idleState);
+export function RegisterPatientForm({
+  visitTypes,
+  doctors,
+}: {
+  visitTypes: VisitTypeName[];
+  doctors: DoctorChoice[];
+}) {
+  const [state, action, pending] = useActionState(
+    registerPatientAction,
+    idleState,
+  );
   return (
     <form action={action} className="grid gap-4 sm:grid-cols-2">
-      <Field label="Name" name="name" required autoComplete="name" error={state.errors?.name} />
-      <Field label="Phone" name="phone" required inputMode="tel" autoComplete="tel" error={state.errors?.phone} />
-      <Field label="Age" name="age" inputMode="numeric" error={state.errors?.age} />
+      <Field
+        label="Name"
+        name="name"
+        required
+        autoComplete="name"
+        error={state.errors?.name}
+      />
+      <Field
+        label="Phone"
+        name="phone"
+        required
+        inputMode="tel"
+        autoComplete="tel"
+        error={state.errors?.phone}
+      />
+      <Field
+        label="Age"
+        name="age"
+        inputMode="numeric"
+        error={state.errors?.age}
+      />
       <SelectField
         label="Gender"
         name="gender"
@@ -44,9 +92,23 @@ export function RegisterPatientForm({ visitTypes }: { visitTypes: VisitTypeName[
         error={state.errors?.gender}
         options={GENDERS.map((gender) => ({ value: gender, label: gender }))}
       />
-      <Field label="Address" name="address" error={state.errors?.address} className="sm:col-span-2" />
-      <Field label="Referring doctor" name="referringDoctor" error={state.errors?.referringDoctor} />
-      <Field label="Consultation fee (INR)" name="consultationFee" inputMode="decimal" defaultValue="0" error={state.errors?.consultationFee} />
+      <Field
+        label="Address"
+        name="address"
+        error={state.errors?.address}
+        className="sm:col-span-2"
+      />
+      <DoctorCombobox
+        doctors={doctors}
+        error={state.errors?.referringDoctorId}
+      />
+      <Field
+        label="Consultation fee (INR)"
+        name="consultationFee"
+        inputMode="decimal"
+        defaultValue="0"
+        error={state.errors?.consultationFee}
+      />
       <VisitTypeField visitTypes={visitTypes} error={state.errors?.visitType} />
       <div className="flex flex-col gap-2 sm:col-span-2 sm:flex-row sm:items-center sm:justify-between">
         <FormMessage message={state.message} ok={state.ok} />
@@ -61,16 +123,27 @@ export function RegisterPatientForm({ visitTypes }: { visitTypes: VisitTypeName[
 export function StartVisitForm({
   patientId,
   visitTypes,
+  doctors,
 }: {
   patientId: string;
   visitTypes: VisitTypeName[];
+  doctors: DoctorChoice[];
 }) {
   const [state, action, pending] = useActionState(startVisitAction, idleState);
   return (
     <form action={action} className="grid gap-4 sm:grid-cols-2">
       <input type="hidden" name="patientId" value={patientId} />
-      <Field label="Referring doctor" name="referringDoctor" error={state.errors?.referringDoctor} />
-      <Field label="Consultation fee (INR)" name="consultationFee" inputMode="decimal" defaultValue="0" error={state.errors?.consultationFee} />
+      <DoctorCombobox
+        doctors={doctors}
+        error={state.errors?.referringDoctorId}
+      />
+      <Field
+        label="Consultation fee (INR)"
+        name="consultationFee"
+        inputMode="decimal"
+        defaultValue="0"
+        error={state.errors?.consultationFee}
+      />
       <VisitTypeField visitTypes={visitTypes} error={state.errors?.visitType} />
       <div className="flex flex-col gap-2 sm:col-span-2 sm:flex-row sm:items-center sm:justify-between">
         <FormMessage message={state.message} ok={state.ok} />
@@ -82,7 +155,13 @@ export function StartVisitForm({
   );
 }
 
-function VisitTypeField({ visitTypes, error }: { visitTypes: VisitTypeName[]; error?: string }) {
+function VisitTypeField({
+  visitTypes,
+  error,
+}: {
+  visitTypes: VisitTypeName[];
+  error?: string;
+}) {
   if (visitTypes.length === 1) {
     return (
       <FieldRoot>
@@ -103,7 +182,13 @@ function VisitTypeField({ visitTypes, error }: { visitTypes: VisitTypeName[]; er
   );
 }
 
-export function ClinicalNoteForm({ visitId, note }: { visitId: string; note: string }) {
+export function ClinicalNoteForm({
+  visitId,
+  note,
+}: {
+  visitId: string;
+  note: string;
+}) {
   const [state, action, pending] = useActionState(saveNoteAction, idleState);
   return (
     <form action={action} className="flex flex-col gap-3">
@@ -118,7 +203,9 @@ export function ClinicalNoteForm({ visitId, note }: { visitId: string; note: str
           maxLength={4000}
           aria-invalid={state.errors?.clinicalNote ? true : undefined}
         />
-        {state.errors?.clinicalNote ? <FieldError>{state.errors.clinicalNote}</FieldError> : null}
+        {state.errors?.clinicalNote ? (
+          <FieldError>{state.errors.clinicalNote}</FieldError>
+        ) : null}
       </FieldRoot>
       <div className="flex items-center justify-between gap-3">
         <FormMessage message={state.message} ok={state.ok} />
@@ -174,7 +261,7 @@ export function ChargeForm({ visitId }: { visitId: string }) {
           <SelectTrigger id="preset" className="w-full min-w-0">
             <SelectValue className="min-w-0" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent alignItemWithTrigger={false}>
             {PRESET_OPTIONS.map((option) => (
               <SelectItem key={option.value} value={option.value}>
                 {option.label}
@@ -183,9 +270,27 @@ export function ChargeForm({ visitId }: { visitId: string }) {
           </SelectContent>
         </Select>
       </FieldRoot>
-      <Field label="Service" name="serviceName" required error={state.errors?.serviceName} />
-      <Field label="Quantity" name="quantity" required inputMode="numeric" defaultValue="1" error={state.errors?.quantity} />
-      <Field label="Unit price (INR)" name="unitPrice" required inputMode="decimal" error={state.errors?.unitPrice} />
+      <Field
+        label="Service"
+        name="serviceName"
+        required
+        error={state.errors?.serviceName}
+      />
+      <Field
+        label="Quantity"
+        name="quantity"
+        required
+        inputMode="numeric"
+        defaultValue="1"
+        error={state.errors?.quantity}
+      />
+      <Field
+        label="Unit price (INR)"
+        name="unitPrice"
+        required
+        inputMode="decimal"
+        error={state.errors?.unitPrice}
+      />
       <div className="flex flex-col gap-2 sm:col-span-3 sm:flex-row sm:items-center sm:justify-between">
         <FormMessage message={state.message} ok={state.ok} />
         <Button type="submit" disabled={pending}>
@@ -197,7 +302,10 @@ export function ChargeForm({ visitId }: { visitId: string }) {
 }
 
 export function DischargeForm({ visitId }: { visitId: string }) {
-  const [state, action, pending] = useActionState(dischargeVisitAction, idleState);
+  const [state, action, pending] = useActionState(
+    dischargeVisitAction,
+    idleState,
+  );
   return (
     <form action={action} className="flex flex-col gap-3">
       <input type="hidden" name="visitId" value={visitId} />
@@ -253,13 +361,21 @@ export function CreateBedForm() {
   }, [state]);
   return (
     <form ref={formRef} action={action} className="grid gap-4 sm:grid-cols-2">
-      <Field label="Bed number" name="bedNumber" required error={state.errors?.bedNumber} />
+      <Field
+        label="Bed number"
+        name="bedNumber"
+        required
+        error={state.errors?.bedNumber}
+      />
       <SelectField
         label="Ward"
         name="wardType"
         defaultValue="GENERAL"
         error={state.errors?.wardType}
-        options={WARD_TYPES.map((ward) => ({ value: ward, label: WARD_LABELS[ward] }))}
+        options={WARD_TYPES.map((ward) => ({
+          value: ward,
+          label: WARD_LABELS[ward],
+        }))}
       />
       <div className="flex flex-col gap-2 sm:col-span-2 sm:flex-row sm:items-center sm:justify-between">
         <FormMessage message={state.message} ok={state.ok} />
@@ -271,8 +387,17 @@ export function CreateBedForm() {
   );
 }
 
-export function BedStatusForm({ bedId, status }: { bedId: string; status: "AVAILABLE" | "MAINTENANCE" }) {
-  const [state, action, pending] = useActionState(setBedStatusAction, idleState);
+export function BedStatusForm({
+  bedId,
+  status,
+}: {
+  bedId: string;
+  status: "AVAILABLE" | "MAINTENANCE";
+}) {
+  const [state, action, pending] = useActionState(
+    setBedStatusAction,
+    idleState,
+  );
   const next = status === "AVAILABLE" ? "MAINTENANCE" : "AVAILABLE";
   return (
     <form action={action} className="flex flex-col gap-1">
@@ -294,16 +419,37 @@ export function CreateItemForm() {
   }, [state]);
   return (
     <form ref={formRef} action={action} className="grid gap-4 sm:grid-cols-2">
-      <Field label="Item" name="itemName" required error={state.errors?.itemName} />
+      <Field
+        label="Item"
+        name="itemName"
+        required
+        error={state.errors?.itemName}
+      />
       <SelectField
         label="Category"
         name="category"
         defaultValue="Medicine"
         error={state.errors?.category}
-        options={ITEM_CATEGORIES.map((category) => ({ value: category, label: category }))}
+        options={ITEM_CATEGORIES.map((category) => ({
+          value: category,
+          label: category,
+        }))}
       />
-      <Field label="Unit" name="unit" required placeholder="Pieces" error={state.errors?.unit} />
-      <Field label="Quantity" name="quantity" required inputMode="numeric" defaultValue="0" error={state.errors?.quantity} />
+      <Field
+        label="Unit"
+        name="unit"
+        required
+        placeholder="Pieces"
+        error={state.errors?.unit}
+      />
+      <Field
+        label="Quantity"
+        name="quantity"
+        required
+        inputMode="numeric"
+        defaultValue="0"
+        error={state.errors?.quantity}
+      />
       <div className="flex flex-col gap-2 sm:col-span-2 sm:flex-row sm:items-center sm:justify-between">
         <FormMessage message={state.message} ok={state.ok} />
         <Button type="submit" disabled={pending}>
@@ -314,7 +460,13 @@ export function CreateItemForm() {
   );
 }
 
-export function StockForm({ itemId, quantity }: { itemId: string; quantity: number }) {
+export function StockForm({
+  itemId,
+  quantity,
+}: {
+  itemId: string;
+  quantity: number;
+}) {
   const [state, action, pending] = useActionState(updateStockAction, idleState);
   return (
     <form action={action} className="flex flex-wrap items-center gap-2">
@@ -345,8 +497,19 @@ export function ExpenseForm() {
   }, [state]);
   return (
     <form ref={formRef} action={action} className="grid gap-4 sm:grid-cols-2">
-      <Field label="Description" name="description" required error={state.errors?.description} />
-      <Field label="Amount (INR)" name="amount" required inputMode="decimal" error={state.errors?.amount} />
+      <Field
+        label="Description"
+        name="description"
+        required
+        error={state.errors?.description}
+      />
+      <Field
+        label="Amount (INR)"
+        name="amount"
+        required
+        inputMode="decimal"
+        error={state.errors?.amount}
+      />
       <div className="flex flex-col gap-2 sm:col-span-2 sm:flex-row sm:items-center sm:justify-between">
         <FormMessage message={state.message} ok={state.ok} />
         <Button type="submit" disabled={pending}>
@@ -359,7 +522,12 @@ export function ExpenseForm() {
 
 export function PrintButton() {
   return (
-    <Button type="button" variant="outline" className="print:hidden" onClick={() => window.print()}>
+    <Button
+      type="button"
+      variant="outline"
+      className="print:hidden"
+      onClick={() => window.print()}
+    >
       Print receipt
     </Button>
   );

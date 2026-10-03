@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink } from "@/components/ui/pagination";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { requirePermission } from "@/lib/auth";
+import { doctorChoices } from "@/lib/doctors";
 import { formatWhen } from "@/lib/format";
 import { PAGE_SIZE, listPatients } from "@/lib/hospital";
 import { can } from "@/lib/permissions";
@@ -27,6 +28,7 @@ export default async function PatientsPage({
   const visitTypes = (["OPD", "IPD"] as const).filter((type) =>
     can(user.role, type === "OPD" ? "visits:opd" : "visits:admit"),
   ) as VisitTypeName[];
+  const doctors = can(user.role, "patients:register") && visitTypes.length > 0 ? await doctorChoices() : [];
 
   return (
     <main className="flex flex-col gap-8">
@@ -54,7 +56,7 @@ export default async function PatientsPage({
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <RegisterPatientForm visitTypes={visitTypes} />
+            <RegisterPatientForm visitTypes={visitTypes} doctors={doctors} />
           </CardContent>
         </Card>
       ) : null}

@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Empty, EmptyDescription, EmptyHeader } from "@/components/ui/empty";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { requirePermission } from "@/lib/auth";
+import { doctorChoices } from "@/lib/doctors";
 import { formatMoney, formatWhen } from "@/lib/format";
 import { getPatient } from "@/lib/hospital";
 import { can } from "@/lib/permissions";
@@ -21,6 +22,7 @@ export default async function PatientPage({ params }: { params: Promise<{ id: st
   const visitTypes = (["OPD", "IPD"] as const).filter((type) =>
     can(user.role, type === "OPD" ? "visits:opd" : "visits:admit"),
   ) as VisitTypeName[];
+  const doctors = visitTypes.length > 0 ? await doctorChoices() : [];
   const active = new Set(patient.visits.filter((visit) => visit.status === "ACTIVE").map((visit) => visit.visitType));
 
   return (
@@ -49,7 +51,7 @@ export default async function PatientPage({ params }: { params: Promise<{ id: st
             ) : null}
           </CardHeader>
           <CardContent>
-            <StartVisitForm patientId={patient.id} visitTypes={visitTypes} />
+            <StartVisitForm patientId={patient.id} visitTypes={visitTypes} doctors={doctors} />
           </CardContent>
         </Card>
       ) : null}

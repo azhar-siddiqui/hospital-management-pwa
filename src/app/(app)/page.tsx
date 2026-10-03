@@ -1,5 +1,33 @@
-import Link from "next/link";
-import type { ComponentType } from "react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardAction,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Empty, EmptyDescription, EmptyHeader } from "@/components/ui/empty";
+import {
+  Item,
+  ItemContent,
+  ItemDescription,
+  ItemGroup,
+  ItemMedia,
+  ItemTitle,
+} from "@/components/ui/item";
+import { Progress } from "@/components/ui/progress";
+import { requireUser } from "@/lib/auth";
+import {
+  formatHospitalDay,
+  formatMoney,
+  formatWhen,
+  hospitalHour,
+} from "@/lib/format";
+import { getDashboard } from "@/lib/hospital";
+import { can } from "@/lib/permissions";
+import { roleLabel } from "@/lib/roles";
 import {
   IconActivity,
   IconBed,
@@ -12,17 +40,8 @@ import {
   IconUserPlus,
   IconUsers,
 } from "@tabler/icons-react";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardAction, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Empty, EmptyDescription, EmptyHeader } from "@/components/ui/empty";
-import { Item, ItemContent, ItemDescription, ItemGroup, ItemMedia, ItemTitle } from "@/components/ui/item";
-import { Progress } from "@/components/ui/progress";
-import { requireUser } from "@/lib/auth";
-import { formatHospitalDay, formatMoney, formatWhen, hospitalHour } from "@/lib/format";
-import { getDashboard } from "@/lib/hospital";
-import { can } from "@/lib/permissions";
-import { roleLabel } from "@/lib/roles";
+import Link from "next/link";
+import type { ComponentType } from "react";
 
 export default async function DashboardPage() {
   const user = await requireUser();
@@ -30,14 +49,20 @@ export default async function DashboardPage() {
   const showPatients = can(user.role, "patients:view");
   const hour = hospitalHour();
   const firstName = user.name.trim().split(/\s+/)[0] || user.name;
-  const bedTotal = data.beds.available + data.beds.occupied + data.beds.maintenance;
+  const bedTotal =
+    data.beds.available + data.beds.occupied + data.beds.maintenance;
 
-  const actions: Array<{ href: string; label: string; icon: ComponentType<{ className?: string }> }> = [
-    { href: "/beds", label: "Beds", icon: IconBed },
-  ];
-  if (showPatients) actions.unshift({ href: "/patients", label: "Patients", icon: IconUsers });
-  if (can(user.role, "inventory:view")) actions.push({ href: "/inventory", label: "Inventory", icon: IconPackage });
-  if (can(user.role, "staff:manage")) actions.push({ href: "/staff", label: "Staff", icon: IconUserCog });
+  const actions: Array<{
+    href: string;
+    label: string;
+    icon: ComponentType<{ className?: string }>;
+  }> = [{ href: "/beds", label: "Beds", icon: IconBed }];
+  if (showPatients)
+    actions.unshift({ href: "/patients", label: "Patients", icon: IconUsers });
+  if (can(user.role, "inventory:view"))
+    actions.push({ href: "/inventory", label: "Inventory", icon: IconPackage });
+  if (can(user.role, "staff:manage"))
+    actions.push({ href: "/staff", label: "Staff", icon: IconUserCog });
 
   return (
     <main className="flex flex-col gap-6">
@@ -53,7 +78,10 @@ export default async function DashboardPage() {
         </p>
       </header>
 
-      <section className="grid grid-cols-2 gap-3 sm:grid-cols-4" aria-label="Shortcuts">
+      <section
+        className="grid grid-cols-2 gap-3 sm:grid-cols-4"
+        aria-label="Shortcuts"
+      >
         {actions.map((action, index) => {
           const ActionIcon = action.icon;
           const wide = actions.length % 2 === 1 && index === actions.length - 1;
@@ -67,8 +95,8 @@ export default async function DashboardPage() {
                 <CardContent
                   className={
                     wide
-                      ? "flex min-h-16 flex-row items-center gap-3 sm:min-h-[5.5rem] sm:flex-col sm:items-start sm:justify-center"
-                      : "flex min-h-[5.5rem] flex-col justify-center gap-2.5"
+                      ? "flex min-h-16 flex-row items-center gap-3 sm:min-h-22 sm:flex-col sm:items-start sm:justify-center"
+                      : "flex min-h-22 flex-col justify-center gap-2.5"
                   }
                 >
                   <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary">
@@ -82,15 +110,59 @@ export default async function DashboardPage() {
         })}
       </section>
 
-      <section aria-label="Today" className="sm:grid sm:grid-cols-2 sm:gap-3 xl:grid-cols-4">
+      <section
+        aria-label="Today"
+        className="sm:grid sm:grid-cols-2 sm:gap-3 xl:grid-cols-4"
+      >
         <Card className="gap-0 divide-y py-0 sm:contents sm:divide-y-0">
-        {showPatients ? <Stat icon={IconActivity} label="Active OPD" value={String(data.activeOpd)} /> : null}
-        {showPatients ? <Stat icon={IconStethoscope} label="Active IPD" value={String(data.activeIpd)} /> : null}
-        <Stat icon={IconBed} label="Beds free" value={String(data.beds.available)} detail={`${data.beds.occupied} occupied`} />
-        {showPatients ? <Stat icon={IconUserPlus} label="Registered today" value={String(data.patientsToday)} /> : null}
-        {data.feesToday !== null ? <Stat icon={IconCash} label="Fees today" value={formatMoney(data.feesToday)} /> : null}
-        {data.chargesToday !== null ? <Stat icon={IconReceipt2} label="Charges today" value={formatMoney(data.chargesToday)} /> : null}
-        {data.expensesToday !== null ? <Stat icon={IconReportMoney} label="Expenses today" value={formatMoney(data.expensesToday)} /> : null}
+          {showPatients ? (
+            <Stat
+              icon={IconActivity}
+              label="Active OPD"
+              value={String(data.activeOpd)}
+            />
+          ) : null}
+          {showPatients ? (
+            <Stat
+              icon={IconStethoscope}
+              label="Active IPD"
+              value={String(data.activeIpd)}
+            />
+          ) : null}
+          <Stat
+            icon={IconBed}
+            label="Beds free"
+            value={String(data.beds.available)}
+            detail={`${data.beds.occupied} occupied`}
+          />
+          {showPatients ? (
+            <Stat
+              icon={IconUserPlus}
+              label="Registered today"
+              value={String(data.patientsToday)}
+            />
+          ) : null}
+          {data.feesToday !== null ? (
+            <Stat
+              icon={IconCash}
+              label="Fees today"
+              value={formatMoney(data.feesToday)}
+            />
+          ) : null}
+          {data.chargesToday !== null ? (
+            <Stat
+              icon={IconReceipt2}
+              label="Charges today"
+              value={formatMoney(data.chargesToday)}
+            />
+          ) : null}
+          {data.expensesToday !== null ? (
+            <Stat
+              icon={IconReportMoney}
+              label="Expenses today"
+              value={formatMoney(data.expensesToday)}
+            />
+          ) : null}
         </Card>
       </section>
 
@@ -99,10 +171,17 @@ export default async function DashboardPage() {
           <CardTitle>Bed occupancy</CardTitle>
           <p className="text-2xl font-semibold tracking-tight tabular-nums">
             {data.beds.occupied}
-            <span className="text-base font-normal text-muted-foreground"> / {bedTotal}</span>
+            <span className="text-base font-normal text-muted-foreground">
+              {" "}
+              / {bedTotal}
+            </span>
           </p>
           <CardAction>
-            <Button nativeButton={false} variant="link" render={<Link href="/beds" />}>
+            <Button
+              nativeButton={false}
+              variant="link"
+              render={<Link href="/beds" />}
+            >
               Wards
             </Button>
           </CardAction>
@@ -121,7 +200,9 @@ export default async function DashboardPage() {
           {bedTotal === 0 ? (
             <Empty className="border-0 p-0">
               <EmptyHeader>
-                <EmptyDescription>No beds have been added yet.</EmptyDescription>
+                <EmptyDescription>
+                  No beds have been added yet.
+                </EmptyDescription>
               </EmptyHeader>
             </Empty>
           ) : null}
@@ -134,7 +215,11 @@ export default async function DashboardPage() {
             <CardHeader className="border-b">
               <CardTitle>Recent visits</CardTitle>
               <CardAction>
-                <Button nativeButton={false} variant="link" render={<Link href="/patients" />}>
+                <Button
+                  nativeButton={false}
+                  variant="link"
+                  render={<Link href="/patients" />}
+                >
                   All patients
                 </Button>
               </CardAction>
@@ -150,7 +235,11 @@ export default async function DashboardPage() {
             ) : (
               <ItemGroup className="gap-0 divide-y">
                 {data.recent.map((visit) => (
-                  <Item key={visit.id} className="rounded-none px-4 py-4" render={<Link href={`/visits/${visit.id}`} />}>
+                  <Item
+                    key={visit.id}
+                    className="rounded-none px-4 py-4"
+                    render={<Link href={`/visits/${visit.id}`} />}
+                  >
                     <ItemMedia>
                       <Badge variant="secondary">{visit.visitType}</Badge>
                     </ItemMedia>
@@ -175,7 +264,9 @@ export default async function DashboardPage() {
             <CardHeader className="border-b">
               <CardTitle>Low stock</CardTitle>
               <CardAction>
-                <span className="text-xs text-muted-foreground">At or below {data.lowStockAt}</span>
+                <span className="text-xs text-muted-foreground">
+                  At or below {data.lowStockAt}
+                </span>
               </CardAction>
             </CardHeader>
             {data.lowStock.length === 0 ? (
@@ -201,7 +292,12 @@ export default async function DashboardPage() {
               </ItemGroup>
             )}
             <CardFooter>
-              <Button nativeButton={false} variant="link" className="px-0" render={<Link href="/inventory" />}>
+              <Button
+                nativeButton={false}
+                variant="link"
+                className="px-0"
+                render={<Link href="/inventory" />}
+              >
                 Open inventory
               </Button>
             </CardFooter>
@@ -237,12 +333,21 @@ function Stat({
         </span>
         <div className="flex min-w-0 flex-1 flex-col">
           <div className="flex items-center justify-between gap-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">{label}</CardTitle>
-            <IconComponent className="hidden size-4 shrink-0 text-primary sm:block" aria-hidden />
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              {label}
+            </CardTitle>
+            <IconComponent
+              className="hidden size-4 shrink-0 text-primary sm:block"
+              aria-hidden
+            />
           </div>
           <div className="mt-1 sm:mt-auto sm:pt-4">
-            <p className="text-2xl font-semibold tracking-tight break-words tabular-nums">{value}</p>
-            {detail ? <p className="mt-1 text-sm text-muted-foreground">{detail}</p> : null}
+            <p className="text-2xl font-semibold tracking-tight wrap-break-word tabular-nums">
+              {value}
+            </p>
+            {detail ? (
+              <p className="mt-1 text-sm text-muted-foreground">{detail}</p>
+            ) : null}
           </div>
         </div>
       </CardContent>
@@ -254,7 +359,9 @@ function Count({ label, value }: { label: string; value: number }) {
   return (
     <div className="flex items-center justify-between gap-3 py-3 sm:block sm:rounded-xl sm:bg-muted/70 sm:px-3 sm:py-3 sm:text-center">
       <dt className="text-sm text-muted-foreground sm:text-xs">{label}</dt>
-      <dd className="text-base font-semibold tabular-nums sm:mt-1 sm:text-lg">{value}</dd>
+      <dd className="text-base font-semibold tabular-nums sm:mt-1 sm:text-lg">
+        {value}
+      </dd>
     </div>
   );
 }

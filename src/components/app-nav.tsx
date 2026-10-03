@@ -2,6 +2,7 @@ import {
   IconBed,
   IconLayoutDashboard,
   IconPackage,
+  IconStethoscope,
   IconUserCog,
   IconUsers,
   type Icon,
@@ -19,6 +20,7 @@ export type NavItem = {
 export const NAV_ITEMS: NavItem[] = [
   { href: "/", label: "Dashboard", shortLabel: "Home", permission: null, icon: IconLayoutDashboard },
   { href: "/patients", label: "Patients", shortLabel: "Patients", permission: "patients:view", icon: IconUsers },
+  { href: "/doctors", label: "Doctors", shortLabel: "Doctors", permission: "doctors:manage", icon: IconStethoscope },
   { href: "/beds", label: "Beds", shortLabel: "Beds", permission: "beds:view", icon: IconBed },
   { href: "/inventory", label: "Inventory", shortLabel: "Stock", permission: "inventory:view", icon: IconPackage },
   { href: "/staff", label: "Staff", shortLabel: "Staff", permission: "staff:manage", icon: IconUserCog },
