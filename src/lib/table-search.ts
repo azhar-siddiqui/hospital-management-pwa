@@ -45,45 +45,40 @@ export const patientFilters = {
 } as const satisfies Record<string, FilterVariant>;
 
 export const doctorFilters = {
-  name: "text",
-  specialty: "text",
-  phone: "text",
+  search: "text",
   createdAt: "date",
 } as const satisfies Record<string, FilterVariant>;
 
 export const staffFilters = {
-  name: "text",
-  email: "text",
+  search: "text",
   role: "multiSelect",
   seeded: "boolean",
   createdAt: "date",
 } as const satisfies Record<string, FilterVariant>;
 
 export const stockFilters = {
-  itemName: "text",
+  search: "text",
   category: "multiSelect",
   quantity: "range",
-  unit: "text",
   lastUpdated: "date",
 } as const satisfies Record<string, FilterVariant>;
 
 export const expenseFilters = {
-  description: "text",
+  expenseSearch: "text",
   amount: "number",
-  loggedBy: "text",
   expenseDate: "dateRange",
 } as const satisfies Record<string, FilterVariant>;
 
 export const visitFilters = {
+  search: "text",
   visitType: "select",
   status: "select",
   admissionDate: "date",
   consultationFee: "number",
-  bed: "text",
 } as const satisfies Record<string, FilterVariant>;
 
 export const chargeFilters = {
-  serviceName: "text",
+  search: "text",
   quantity: "number",
   unitPrice: "number",
   total: "number",

@@ -31,6 +31,7 @@ const patientFields = {
 } satisfies Record<string, FieldSpec>;
 
 const doctorFields = {
+  search: { kind: "string", path: ["name"], sortable: false, where: doctorSearchWhere },
   name: { kind: "string", path: ["name"] },
   specialty: { kind: "string", path: ["specialty"], optional: true },
   phone: { kind: "string", path: ["phone"], optional: true },
@@ -38,6 +39,7 @@ const doctorFields = {
 } satisfies Record<string, FieldSpec>;
 
 const staffFields = {
+  search: { kind: "string", path: ["name"], sortable: false, where: staffSearchWhere },
   name: { kind: "string", path: ["name"] },
   email: { kind: "string", path: ["email"] },
   role: { kind: "enum", path: ["role"] },
@@ -46,6 +48,7 @@ const staffFields = {
 } satisfies Record<string, FieldSpec>;
 
 const stockFields = {
+  search: { kind: "string", path: ["itemName"], sortable: false, where: stockSearchWhere },
   itemName: { kind: "string", path: ["itemName"] },
   category: { kind: "enum", path: ["category"], optional: true },
   quantity: { kind: "number", path: ["quantity"] },
@@ -54,6 +57,12 @@ const stockFields = {
 } satisfies Record<string, FieldSpec>;
 
 const expenseFields = {
+  expenseSearch: {
+    kind: "string",
+    path: ["description"],
+    sortable: false,
+    where: expenseSearchWhere,
+  },
   description: { kind: "string", path: ["description"] },
   amount: { kind: "number", path: ["amount"] },
   loggedBy: { kind: "string", path: ["loggedBy", "name"] },
@@ -61,6 +70,7 @@ const expenseFields = {
 } satisfies Record<string, FieldSpec>;
 
 const visitFields = {
+  search: { kind: "string", path: ["bed", "bedNumber"], sortable: false, where: visitSearchWhere },
   visitType: { kind: "enum", path: ["visitType"] },
   status: { kind: "enum", path: ["status"] },
   admissionDate: { kind: "date", path: ["admissionDate"] },
@@ -69,6 +79,7 @@ const visitFields = {
 } satisfies Record<string, FieldSpec>;
 
 const chargeFields = {
+  search: { kind: "string", path: ["serviceName"], sortable: false, where: chargeSearchWhere },
   serviceName: { kind: "string", path: ["serviceName"] },
   quantity: { kind: "number", path: ["quantity"] },
   unitPrice: { kind: "number", path: ["unitPrice"] },
@@ -76,22 +87,79 @@ const chargeFields = {
   createdAt: { kind: "date", path: ["createdAt"] },
 } satisfies Record<string, FieldSpec>;
 
-function patientSearchWhere(filter: DataTableQuery["filters"][number]) {
+function orSearch<T>(
+  filter: DataTableQuery["filters"][number],
+  clauses: (text: string, exact: boolean) => T[],
+): Record<string, unknown> | null {
   const text = (Array.isArray(filter.value) ? "" : filter.value).trim();
   if (!text) return null;
   const exact = filter.operator === "eq" || filter.operator === "ne";
   const fuzzy = filter.operator === "iLike" || filter.operator === "notILike";
   if (!exact && !fuzzy) return null;
-
-  const parts: Record<string, unknown>[] = exact
-    ? [{ name: { equals: text, mode: "insensitive" } }, { phone: { equals: text } }]
-    : [{ name: { contains: text, mode: "insensitive" } }, { phone: { contains: text } }];
-  if (/^\d+$/.test(text)) {
-    const age = Number(text);
-    if (age <= 200) parts.push({ age });
-  }
+  const parts = clauses(text, exact);
+  if (parts.length === 0) return null;
   const match = { OR: parts };
   return filter.operator === "notILike" || filter.operator === "ne" ? { NOT: match } : match;
+}
+
+function insensitive(text: string, exact: boolean) {
+  return exact
+    ? { equals: text, mode: "insensitive" as const }
+    : { contains: text, mode: "insensitive" as const };
+}
+
+function patientSearchWhere(filter: DataTableQuery["filters"][number]) {
+  return orSearch(filter, (text, exact) => {
+    const parts: Record<string, unknown>[] = exact
+      ? [{ name: { equals: text, mode: "insensitive" } }, { phone: { equals: text } }]
+      : [{ name: { contains: text, mode: "insensitive" } }, { phone: { contains: text } }];
+    if (/^\d+$/.test(text)) {
+      const age = Number(text);
+      if (age <= 200) parts.push({ age });
+    }
+    return parts;
+  });
+}
+
+function doctorSearchWhere(filter: DataTableQuery["filters"][number]) {
+  return orSearch(filter, (text, exact): Prisma.DoctorWhereInput[] => [
+    { name: insensitive(text, exact) },
+    { specialty: insensitive(text, exact) },
+    { phone: exact ? { equals: text } : { contains: text } },
+  ]);
+}
+
+function staffSearchWhere(filter: DataTableQuery["filters"][number]) {
+  return orSearch(filter, (text, exact): Prisma.UserWhereInput[] => [
+    { name: insensitive(text, exact) },
+    { email: insensitive(text, exact) },
+  ]);
+}
+
+function stockSearchWhere(filter: DataTableQuery["filters"][number]) {
+  return orSearch(filter, (text, exact): Prisma.InventoryWhereInput[] => [
+    { itemName: insensitive(text, exact) },
+    { unit: insensitive(text, exact) },
+  ]);
+}
+
+function expenseSearchWhere(filter: DataTableQuery["filters"][number]) {
+  return orSearch(filter, (text, exact): Prisma.ExpenseWhereInput[] => [
+    { description: insensitive(text, exact) },
+    { loggedBy: { name: insensitive(text, exact) } },
+  ]);
+}
+
+function visitSearchWhere(filter: DataTableQuery["filters"][number]) {
+  return orSearch(filter, (text, exact): Prisma.VisitWhereInput[] => [
+    { bed: { is: { bedNumber: insensitive(text, exact) } } },
+  ]);
+}
+
+function chargeSearchWhere(filter: DataTableQuery["filters"][number]) {
+  return orSearch(filter, (text, exact): Prisma.ServiceChargeWhereInput[] => [
+    { serviceName: insensitive(text, exact) },
+  ]);
 }
 
 function seededWhere(filter: DataTableQuery["filters"][number]) {

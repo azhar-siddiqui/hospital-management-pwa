@@ -1,6 +1,11 @@
 "use client";
 
-import { type Column, type ColumnDef, constructFilterFn } from "@tanstack/react-table";
+import {
+  type Column,
+  type ColumnDef,
+  type RowData,
+  constructFilterFn,
+} from "@tanstack/react-table";
 import Link from "next/link";
 import * as React from "react";
 
@@ -42,20 +47,82 @@ const visitStatusOptions = [
   { label: "Discharged", value: "DISCHARGED" },
 ];
 
-const patientSearchFilter = constructFilterFn<DataTableFeatures, PatientTableRow>({
-  filter: (_value, filterValue, row) => matchesPatientSearch(row.original, filterValue),
-  autoRemove: (value) => value === undefined || value === "",
+const SEARCH_INPUT_CLASS = "w-full min-w-52 max-w-72";
+
+function includesText(value: string | null | undefined, query: string) {
+  return (value ?? "").toLowerCase().includes(query);
+}
+
+function makeSearchFilter<TData extends RowData>(matches: (row: TData, query: string) => boolean) {
+  return constructFilterFn<DataTableFeatures, TData>({
+    filter: (_value, filterValue, row) => {
+      const query = String(filterValue ?? "")
+        .trim()
+        .toLowerCase();
+      if (!query) return true;
+      return matches(row.original, query);
+    },
+    autoRemove: (value) => value === undefined || value === "",
+  });
+}
+
+function searchColumn<TData extends RowData>(
+  id: string,
+  placeholder: string,
+  accessorFn: (row: TData) => string,
+  filterFn: ReturnType<typeof makeSearchFilter<TData>>,
+): ColumnDef<DataTableFeatures, TData> {
+  return {
+    id,
+    accessorFn,
+    header: () => null,
+    cell: () => null,
+    meta: {
+      label: "Search",
+      variant: "text",
+      placeholder,
+      className: SEARCH_INPUT_CLASS,
+    },
+    enableColumnFilter: true,
+    enableSorting: false,
+    enableHiding: false,
+    filterFn,
+  };
+}
+
+const patientSearchFilter = makeSearchFilter<PatientTableRow>((patient, query) => {
+  if (includesText(patient.name, query)) return true;
+  if (includesText(patient.phone, query)) return true;
+  return /^\d+$/.test(query) && patient.age === Number(query);
 });
 
-function matchesPatientSearch(patient: PatientTableRow, filterValue: unknown) {
-  const text = String(filterValue ?? "")
-    .trim()
-    .toLowerCase();
-  if (!text) return true;
-  if (patient.name.toLowerCase().includes(text)) return true;
-  if (patient.phone.toLowerCase().includes(text)) return true;
-  return /^\d+$/.test(text) && patient.age === Number(text);
-}
+const doctorSearchFilter = makeSearchFilter<DoctorTableRow>(
+  (doctor, query) =>
+    includesText(doctor.name, query) ||
+    includesText(doctor.specialty, query) ||
+    includesText(doctor.phone, query),
+);
+
+const staffSearchFilter = makeSearchFilter<StaffTableRow>(
+  (member, query) => includesText(member.name, query) || includesText(member.email, query),
+);
+
+const stockSearchFilter = makeSearchFilter<StockTableRow>(
+  (item, query) => includesText(item.itemName, query) || includesText(item.unit, query),
+);
+
+const expenseSearchFilter = makeSearchFilter<ExpenseTableRow>(
+  (expense, query) =>
+    includesText(expense.description, query) || includesText(expense.loggedBy, query),
+);
+
+const visitSearchFilter = makeSearchFilter<VisitTableRow>((visit, query) =>
+  includesText(visit.bed, query),
+);
+
+const chargeSearchFilter = makeSearchFilter<ChargeTableRow>((charge, query) =>
+  includesText(charge.serviceName, query),
+);
 
 function headers<TData extends Record<string, unknown>>() {
   return (label: string) =>
@@ -83,22 +150,12 @@ export function PatientsTable({
     const header = headers<PatientTableRow>();
     return [
       getDataTableSelectColumn(),
-      {
-        id: "search",
-        accessorFn: (row) => [row.name, row.phone, row.age ?? ""].join(" "),
-        header: () => null,
-        cell: () => null,
-        meta: {
-          label: "Search",
-          variant: "text",
-          placeholder: "Name, phone, or age",
-          className: "w-full min-w-52 max-w-72",
-        },
-        enableColumnFilter: true,
-        enableSorting: false,
-        enableHiding: false,
-        filterFn: patientSearchFilter,
-      },
+      searchColumn(
+        "search",
+        "Name, phone, or age",
+        (row) => [row.name, row.phone, row.age ?? ""].join(" "),
+        patientSearchFilter,
+      ),
       {
         id: "name",
         accessorKey: "name",
@@ -185,13 +242,18 @@ export function DoctorsTable({
     const header = headers<DoctorTableRow>();
     return [
       getDataTableSelectColumn(),
+      searchColumn(
+        "search",
+        "Name, specialty, or phone",
+        (row) => [row.name, row.specialty ?? "", row.phone ?? ""].join(" "),
+        doctorSearchFilter,
+      ),
       {
         id: "name",
         accessorKey: "name",
         header: header("Name"),
         cell: ({ row }) => <span className="font-medium">{row.original.name}</span>,
-        meta: { label: "Name", variant: "text", placeholder: "Name" },
-        enableColumnFilter: true,
+        meta: { label: "Name" },
         size: 180,
       },
       {
@@ -199,8 +261,7 @@ export function DoctorsTable({
         accessorKey: "specialty",
         header: header("Specialty"),
         cell: ({ row }) => row.original.specialty || "—",
-        meta: { label: "Specialty", variant: "text", placeholder: "Specialty" },
-        enableColumnFilter: true,
+        meta: { label: "Specialty" },
         size: 160,
       },
       {
@@ -208,8 +269,7 @@ export function DoctorsTable({
         accessorKey: "phone",
         header: header("Phone"),
         cell: ({ row }) => row.original.phone || "—",
-        meta: { label: "Phone", variant: "text", placeholder: "Phone" },
-        enableColumnFilter: true,
+        meta: { label: "Phone" },
         size: 140,
       },
       {
@@ -233,6 +293,7 @@ export function DoctorsTable({
       filterMode={filterMode}
       filename="doctors"
       initialSorting={[{ id: "name", desc: false }]}
+      columnVisibility={{ search: false }}
     />
   );
 }
@@ -252,21 +313,25 @@ export function StaffTable({
     const header = headers<StaffTableRow>();
     return [
       getDataTableSelectColumn(),
+      searchColumn(
+        "search",
+        "Name or email",
+        (row) => [row.name, row.email].join(" "),
+        staffSearchFilter,
+      ),
       {
         id: "name",
         accessorKey: "name",
         header: header("Name"),
         cell: ({ row }) => <span className="font-medium">{row.original.name}</span>,
-        meta: { label: "Name", variant: "text", placeholder: "Name" },
-        enableColumnFilter: true,
+        meta: { label: "Name" },
         size: 180,
       },
       {
         id: "email",
         accessorKey: "email",
         header: header("Email"),
-        meta: { label: "Email", variant: "text", placeholder: "Email" },
-        enableColumnFilter: true,
+        meta: { label: "Email" },
         size: 220,
       },
       {
@@ -317,6 +382,7 @@ export function StaffTable({
       filterMode={filterMode}
       filename="staff"
       initialSorting={[{ id: "createdAt", desc: false }]}
+      columnVisibility={{ search: false }}
     />
   );
 }
@@ -338,13 +404,18 @@ export function StockTable({
     const header = headers<StockTableRow>();
     return [
       getDataTableSelectColumn(),
+      searchColumn(
+        "search",
+        "Item or unit",
+        (row) => [row.itemName, row.unit].join(" "),
+        stockSearchFilter,
+      ),
       {
         id: "itemName",
         accessorKey: "itemName",
         header: header("Item"),
         cell: ({ row }) => <span className="font-medium">{row.original.itemName}</span>,
-        meta: { label: "Item", variant: "text", placeholder: "Item" },
-        enableColumnFilter: true,
+        meta: { label: "Item" },
         size: 180,
       },
       {
@@ -379,8 +450,7 @@ export function StockTable({
         id: "unit",
         accessorKey: "unit",
         header: header("Unit"),
-        meta: { label: "Unit", variant: "text", placeholder: "Unit" },
-        enableColumnFilter: true,
+        meta: { label: "Unit" },
         size: 110,
       },
       {
@@ -405,6 +475,7 @@ export function StockTable({
       filename="stock"
       queryKeys={stockQueryKeys}
       initialSorting={[{ id: "itemName", desc: false }]}
+      columnVisibility={{ search: false }}
     />
   );
 }
@@ -424,12 +495,17 @@ export function ExpensesTable({
     const header = headers<ExpenseTableRow>();
     return [
       getDataTableSelectColumn(),
+      searchColumn(
+        "expenseSearch",
+        "Description or name",
+        (row) => [row.description, row.loggedBy].join(" "),
+        expenseSearchFilter,
+      ),
       {
         id: "description",
         accessorKey: "description",
         header: header("Description"),
-        meta: { label: "Description", variant: "text", placeholder: "Description" },
-        enableColumnFilter: true,
+        meta: { label: "Description" },
         size: 220,
       },
       {
@@ -445,8 +521,7 @@ export function ExpensesTable({
         id: "loggedBy",
         accessorKey: "loggedBy",
         header: header("By"),
-        meta: { label: "By", variant: "text", placeholder: "Name" },
-        enableColumnFilter: true,
+        meta: { label: "By" },
         size: 160,
       },
       {
@@ -471,6 +546,7 @@ export function ExpensesTable({
       filename="expenses"
       queryKeys={expenseQueryKeys}
       initialSorting={[{ id: "expenseDate", desc: true }]}
+      columnVisibility={{ expenseSearch: false }}
     />
   );
 }
@@ -490,6 +566,7 @@ export function VisitsTable({
     const header = headers<VisitTableRow>();
     return [
       getDataTableSelectColumn(),
+      searchColumn("search", "Bed", (row) => row.bed ?? "", visitSearchFilter),
       {
         id: "visitType",
         accessorKey: "visitType",
@@ -539,8 +616,7 @@ export function VisitsTable({
         accessorKey: "bed",
         header: header("Bed"),
         cell: ({ row }) => row.original.bed ?? "—",
-        meta: { label: "Bed", variant: "text", placeholder: "Bed" },
-        enableColumnFilter: true,
+        meta: { label: "Bed" },
         size: 110,
       },
     ];
@@ -555,6 +631,7 @@ export function VisitsTable({
       filterMode={filterMode}
       filename="visits"
       initialSorting={[{ id: "admissionDate", desc: true }]}
+      columnVisibility={{ search: false }}
     />
   );
 }
@@ -574,12 +651,12 @@ export function ChargesTable({
     const header = headers<ChargeTableRow>();
     return [
       getDataTableSelectColumn(),
+      searchColumn("search", "Service", (row) => row.serviceName, chargeSearchFilter),
       {
         id: "serviceName",
         accessorKey: "serviceName",
         header: header("Service"),
-        meta: { label: "Service", variant: "text", placeholder: "Service" },
-        enableColumnFilter: true,
+        meta: { label: "Service" },
         size: 200,
       },
       {
@@ -629,6 +706,7 @@ export function ChargesTable({
       filterMode={filterMode}
       filename="charges"
       initialSorting={[{ id: "createdAt", desc: true }]}
+      columnVisibility={{ search: false }}
     />
   );
 }
