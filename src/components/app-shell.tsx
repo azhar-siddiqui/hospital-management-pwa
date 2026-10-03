@@ -8,6 +8,7 @@ import {
   type NavItem,
 } from "@/components/app-nav";
 import { roleLabel } from "@/lib/roles";
+import { Button } from "@/components/ui/button";
 import { IconLogout, IconMenu2, IconX } from "@tabler/icons-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -99,17 +100,19 @@ export function AppShell({
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="app-chrome sticky top-0 z-30 border-b border-border bg-card/95 pt-[env(safe-area-inset-top)] backdrop-blur-md lg:hidden">
           <div className="flex h-14 items-center gap-1 px-2">
-            <button
+            <Button
               ref={menuRef}
               type="button"
-              className="grid size-11 place-items-center rounded-lg text-foreground outline-none hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50"
+              variant="ghost"
+              size="icon-lg"
+              className="size-11"
               aria-expanded={open}
               aria-controls={open ? drawerId : undefined}
               aria-label="Open menu"
               onClick={() => setMenuPath(pathname)}
             >
               <IconMenu2 className="size-5" aria-hidden />
-            </button>
+            </Button>
             <p className="min-w-0 flex-1 truncate text-sm font-semibold">
               {sectionTitle(pathname)}
             </p>
@@ -187,15 +190,17 @@ function SidebarPanel({
           <p className="truncate text-xs text-muted-foreground">Operations</p>
         </div>
         {closeRef ? (
-          <button
+          <Button
             ref={closeRef}
             type="button"
-            className="grid size-11 shrink-0 place-items-center rounded-lg outline-none hover:bg-sidebar-accent focus-visible:ring-3 focus-visible:ring-ring/50"
+            variant="ghost"
+            size="icon-lg"
+            className="size-11 shrink-0"
             aria-label="Close menu"
             onClick={onClose}
           >
             <IconX className="size-5" aria-hidden />
-          </button>
+          </Button>
         ) : null}
       </div>
 
@@ -207,20 +212,17 @@ function SidebarPanel({
           const current = isCurrent(pathname, item.href);
           const Icon = item.icon;
           return (
-            <Link
+            <Button
               key={item.href}
-              href={item.href}
+              nativeButton={false}
+              variant={current ? "default" : "ghost"}
+              className="h-11 w-full justify-start px-3"
               aria-current={current ? "page" : undefined}
-              onClick={onNavigate}
-              className={
-                current
-                  ? "flex min-h-11 items-center gap-3 rounded-lg bg-sidebar-primary px-3 text-sm font-medium text-sidebar-primary-foreground outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
-                  : "flex min-h-11 items-center gap-3 rounded-lg px-3 text-sm font-medium text-sidebar-foreground outline-none hover:bg-sidebar-accent focus-visible:ring-3 focus-visible:ring-ring/50"
-              }
+              render={<Link href={item.href} onClick={onNavigate} />}
             >
               <Icon className="size-5 shrink-0" aria-hidden />
               {item.label}
-            </Link>
+            </Button>
           );
         })}
       </nav>
@@ -241,13 +243,10 @@ function SidebarPanel({
           </div>
         </div>
         <form action={logout} className="mt-1">
-          <button
-            type="submit"
-            className="flex h-11 w-full items-center gap-3 rounded-lg px-3 text-sm font-medium outline-none hover:bg-sidebar-accent focus-visible:ring-3 focus-visible:ring-ring/50"
-          >
+          <Button type="submit" variant="ghost" className="h-11 w-full justify-start px-3">
             <IconLogout className="size-5 shrink-0" aria-hidden />
             Sign out
-          </button>
+          </Button>
         </form>
       </div>
     </div>

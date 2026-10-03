@@ -12,6 +12,12 @@ import {
   IconUserPlus,
   IconUsers,
 } from "@tabler/icons-react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardAction, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Empty, EmptyDescription, EmptyHeader } from "@/components/ui/empty";
+import { Item, ItemContent, ItemDescription, ItemGroup, ItemMedia, ItemTitle } from "@/components/ui/item";
+import { Progress } from "@/components/ui/progress";
 import { requireUser } from "@/lib/auth";
 import { formatHospitalDay, formatMoney, formatWhen, hospitalHour } from "@/lib/format";
 import { getDashboard } from "@/lib/hospital";
@@ -25,7 +31,6 @@ export default async function DashboardPage() {
   const hour = hospitalHour();
   const firstName = user.name.trim().split(/\s+/)[0] || user.name;
   const bedTotal = data.beds.available + data.beds.occupied + data.beds.maintenance;
-  const occupiedShare = bedTotal === 0 ? 0 : Math.round((data.beds.occupied / bedTotal) * 100);
 
   const actions: Array<{ href: string; label: string; icon: ComponentType<{ className?: string }> }> = [
     { href: "/beds", label: "Beds", icon: IconBed },
@@ -56,25 +61,29 @@ export default async function DashboardPage() {
             <Link
               key={action.href}
               href={action.href}
-              className={
-                wide
-                  ? "col-span-2 flex min-h-16 flex-row items-center gap-3 rounded-2xl border border-border bg-card px-4 py-3.5 outline-none transition-colors hover:bg-muted/70 focus-visible:ring-3 focus-visible:ring-ring/50 active:bg-muted sm:col-span-1 sm:min-h-[5.5rem] sm:flex-col sm:items-start sm:justify-center"
-                  : "flex min-h-[5.5rem] flex-col justify-center gap-2.5 rounded-2xl border border-border bg-card px-4 py-3.5 outline-none transition-colors hover:bg-muted/70 focus-visible:ring-3 focus-visible:ring-ring/50 active:bg-muted"
-              }
+              className={`rounded-xl outline-none focus-visible:ring-3 focus-visible:ring-ring/50 ${wide ? "col-span-2 sm:col-span-1" : ""}`}
             >
-              <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary">
-                <ActionIcon className="size-5" aria-hidden />
-              </span>
-              <span className="text-sm font-medium">{action.label}</span>
+              <Card className="h-full transition-colors hover:bg-muted/70">
+                <CardContent
+                  className={
+                    wide
+                      ? "flex min-h-16 flex-row items-center gap-3 sm:min-h-[5.5rem] sm:flex-col sm:items-start sm:justify-center"
+                      : "flex min-h-[5.5rem] flex-col justify-center gap-2.5"
+                  }
+                >
+                  <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary">
+                    <ActionIcon className="size-5" aria-hidden />
+                  </span>
+                  <span className="text-sm font-medium">{action.label}</span>
+                </CardContent>
+              </Card>
             </Link>
           );
         })}
       </section>
 
-      <section
-        aria-label="Today"
-        className="grid grid-cols-1 divide-y divide-border overflow-hidden rounded-2xl border border-border bg-card sm:grid-cols-2 sm:gap-3 sm:divide-y-0 sm:overflow-visible sm:rounded-none sm:border-0 sm:bg-transparent xl:grid-cols-4"
-      >
+      <section aria-label="Today" className="sm:grid sm:grid-cols-2 sm:gap-3 xl:grid-cols-4">
+        <Card className="gap-0 divide-y py-0 sm:contents sm:divide-y-0">
         {showPatients ? <Stat icon={IconActivity} label="Active OPD" value={String(data.activeOpd)} /> : null}
         {showPatients ? <Stat icon={IconStethoscope} label="Active IPD" value={String(data.activeIpd)} /> : null}
         <Stat icon={IconBed} label="Beds free" value={String(data.beds.available)} detail={`${data.beds.occupied} occupied`} />
@@ -82,104 +91,121 @@ export default async function DashboardPage() {
         {data.feesToday !== null ? <Stat icon={IconCash} label="Fees today" value={formatMoney(data.feesToday)} /> : null}
         {data.chargesToday !== null ? <Stat icon={IconReceipt2} label="Charges today" value={formatMoney(data.chargesToday)} /> : null}
         {data.expensesToday !== null ? <Stat icon={IconReportMoney} label="Expenses today" value={formatMoney(data.expensesToday)} /> : null}
+        </Card>
       </section>
 
-      <section className="rounded-2xl border border-border bg-card p-4 sm:p-5">
-        <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0">
-            <h2 className="text-sm font-medium">Bed occupancy</h2>
-            <p className="mt-1 text-2xl font-semibold tracking-tight tabular-nums">
-              {data.beds.occupied}
-              <span className="text-base font-normal text-muted-foreground"> / {bedTotal}</span>
-            </p>
-          </div>
-          <Link href="/beds" className="shrink-0 text-sm font-medium text-primary hover:underline">
-            Wards
-          </Link>
-        </div>
-        <div
-          className="mt-4 h-2.5 overflow-hidden rounded-full bg-muted"
-          role="meter"
-          aria-valuemin={0}
-          aria-valuemax={Math.max(bedTotal, 1)}
-          aria-valuenow={data.beds.occupied}
-          aria-label="Occupied beds"
-        >
-          <div className="h-full rounded-full bg-primary" style={{ width: `${occupiedShare}%` }} />
-        </div>
-        <dl className="mt-2 divide-y divide-border sm:mt-4 sm:grid sm:grid-cols-3 sm:gap-3 sm:divide-y-0">
-          <Count label="Free" value={data.beds.available} />
-          <Count label="Occupied" value={data.beds.occupied} />
-          <Count label="Maintenance" value={data.beds.maintenance} />
-        </dl>
-        {bedTotal === 0 ? <p className="mt-3 text-sm text-muted-foreground">No beds have been added yet.</p> : null}
-      </section>
+      <Card>
+        <CardHeader>
+          <CardTitle>Bed occupancy</CardTitle>
+          <p className="text-2xl font-semibold tracking-tight tabular-nums">
+            {data.beds.occupied}
+            <span className="text-base font-normal text-muted-foreground"> / {bedTotal}</span>
+          </p>
+          <CardAction>
+            <Button nativeButton={false} variant="link" render={<Link href="/beds" />}>
+              Wards
+            </Button>
+          </CardAction>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-4">
+          <Progress
+            value={data.beds.occupied}
+            max={Math.max(bedTotal, 1)}
+            aria-label="Occupied beds"
+          />
+          <dl className="divide-y sm:grid sm:grid-cols-3 sm:gap-3 sm:divide-y-0">
+            <Count label="Free" value={data.beds.available} />
+            <Count label="Occupied" value={data.beds.occupied} />
+            <Count label="Maintenance" value={data.beds.maintenance} />
+          </dl>
+          {bedTotal === 0 ? (
+            <Empty className="border-0 p-0">
+              <EmptyHeader>
+                <EmptyDescription>No beds have been added yet.</EmptyDescription>
+              </EmptyHeader>
+            </Empty>
+          ) : null}
+        </CardContent>
+      </Card>
 
       <div className="grid gap-4 lg:grid-cols-5 lg:gap-5">
         {showPatients ? (
-          <section className="overflow-hidden rounded-2xl border border-border bg-card lg:col-span-3">
-            <div className="flex items-center justify-between gap-3 border-b border-border px-4 py-4">
-              <h2 className="font-medium">Recent visits</h2>
-              <Link href="/patients" className="shrink-0 text-sm font-medium text-primary hover:underline">
-                All patients
-              </Link>
-            </div>
+          <Card className="lg:col-span-3">
+            <CardHeader className="border-b">
+              <CardTitle>Recent visits</CardTitle>
+              <CardAction>
+                <Button nativeButton={false} variant="link" render={<Link href="/patients" />}>
+                  All patients
+                </Button>
+              </CardAction>
+            </CardHeader>
             {data.recent.length === 0 ? (
-              <p className="px-4 py-8 text-sm text-muted-foreground">No visits yet.</p>
+              <CardContent>
+                <Empty className="border-0">
+                  <EmptyHeader>
+                    <EmptyDescription>No visits yet.</EmptyDescription>
+                  </EmptyHeader>
+                </Empty>
+              </CardContent>
             ) : (
-              <ul className="divide-y divide-border">
+              <ItemGroup className="gap-0 divide-y">
                 {data.recent.map((visit) => (
-                  <li key={visit.id}>
-                    <Link
-                      href={`/visits/${visit.id}`}
-                      className="flex items-start gap-3 px-4 py-4 outline-none hover:bg-muted/60 focus-visible:bg-muted/60"
-                    >
-                      <span className="mt-0.5 w-11 shrink-0 rounded-md bg-muted px-1.5 py-1 text-center text-xs font-semibold">
-                        {visit.visitType}
-                      </span>
-                      <span className="min-w-0 flex-1">
-                        <span className="block truncate font-medium">{visit.patient.name}</span>
-                        <span className="mt-1 block text-sm leading-5 text-muted-foreground">
-                          {visit.status === "ACTIVE" ? "Active" : "Discharged"}
-                          {visit.bed ? ` · Bed ${visit.bed.bedNumber}` : ""}
-                          {" · "}
-                          {formatWhen(visit.admissionDate)}
-                        </span>
-                      </span>
-                    </Link>
-                  </li>
+                  <Item key={visit.id} className="rounded-none px-4 py-4" render={<Link href={`/visits/${visit.id}`} />}>
+                    <ItemMedia>
+                      <Badge variant="secondary">{visit.visitType}</Badge>
+                    </ItemMedia>
+                    <ItemContent>
+                      <ItemTitle>{visit.patient.name}</ItemTitle>
+                      <ItemDescription>
+                        {visit.status === "ACTIVE" ? "Active" : "Discharged"}
+                        {visit.bed ? ` · Bed ${visit.bed.bedNumber}` : ""}
+                        {" · "}
+                        {formatWhen(visit.admissionDate)}
+                      </ItemDescription>
+                    </ItemContent>
+                  </Item>
                 ))}
-              </ul>
+              </ItemGroup>
             )}
-          </section>
+          </Card>
         ) : null}
 
         {data.lowStock ? (
-          <section className="overflow-hidden rounded-2xl border border-border bg-card lg:col-span-2">
-            <div className="flex items-center justify-between gap-3 border-b border-border px-4 py-4">
-              <h2 className="font-medium">Low stock</h2>
-              <span className="shrink-0 text-xs text-muted-foreground">At or below {data.lowStockAt}</span>
-            </div>
+          <Card className="lg:col-span-2">
+            <CardHeader className="border-b">
+              <CardTitle>Low stock</CardTitle>
+              <CardAction>
+                <span className="text-xs text-muted-foreground">At or below {data.lowStockAt}</span>
+              </CardAction>
+            </CardHeader>
             {data.lowStock.length === 0 ? (
-              <p className="px-4 py-8 text-sm text-muted-foreground">Stock levels look fine.</p>
+              <CardContent>
+                <Empty className="border-0">
+                  <EmptyHeader>
+                    <EmptyDescription>Stock levels look fine.</EmptyDescription>
+                  </EmptyHeader>
+                </Empty>
+              </CardContent>
             ) : (
-              <ul className="divide-y divide-border">
+              <ItemGroup className="gap-0 divide-y">
                 {data.lowStock.map((item) => (
-                  <li key={item.id} className="flex flex-col items-start gap-2 px-4 py-4 text-sm sm:flex-row sm:items-center sm:justify-between">
-                    <span className="font-medium leading-5">{item.itemName}</span>
-                    <span className="shrink-0 rounded-full bg-destructive/10 px-2.5 py-1 text-xs font-medium text-destructive">
+                  <Item key={item.id} className="rounded-none px-4 py-4">
+                    <ItemContent>
+                      <ItemTitle>{item.itemName}</ItemTitle>
+                    </ItemContent>
+                    <Badge variant="destructive">
                       {item.quantity} {item.unit}
-                    </span>
-                  </li>
+                    </Badge>
+                  </Item>
                 ))}
-              </ul>
+              </ItemGroup>
             )}
-            <div className="border-t border-border px-4 py-4">
-              <Link href="/inventory" className="text-sm font-medium text-primary hover:underline">
+            <CardFooter>
+              <Button nativeButton={false} variant="link" className="px-0" render={<Link href="/inventory" />}>
                 Open inventory
-              </Link>
-            </div>
-          </section>
+              </Button>
+            </CardFooter>
+          </Card>
         ) : null}
       </div>
     </main>
@@ -204,21 +230,23 @@ function Stat({
   detail?: string;
 }) {
   return (
-    <article className="flex min-w-0 items-start gap-3 px-4 py-4 sm:h-full sm:flex-col sm:items-stretch sm:gap-0 sm:rounded-2xl sm:border sm:border-border sm:bg-card sm:p-5">
-      <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary sm:hidden">
-        <IconComponent className="size-5" aria-hidden />
-      </span>
-      <div className="flex min-w-0 flex-1 flex-col">
-        <div className="flex items-center justify-between gap-3">
-          <h2 className="text-sm font-medium text-muted-foreground">{label}</h2>
-          <IconComponent className="hidden size-4 shrink-0 text-primary sm:block" aria-hidden />
+    <Card className="gap-0 rounded-none bg-transparent py-0 ring-0 sm:h-full sm:rounded-xl sm:bg-card sm:py-4 sm:ring-1">
+      <CardContent className="flex items-start gap-3 px-4 py-4 sm:flex-1 sm:flex-col sm:items-stretch sm:gap-0">
+        <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary sm:hidden">
+          <IconComponent className="size-5" aria-hidden />
+        </span>
+        <div className="flex min-w-0 flex-1 flex-col">
+          <div className="flex items-center justify-between gap-3">
+            <CardTitle className="text-sm font-medium text-muted-foreground">{label}</CardTitle>
+            <IconComponent className="hidden size-4 shrink-0 text-primary sm:block" aria-hidden />
+          </div>
+          <div className="mt-1 sm:mt-auto sm:pt-4">
+            <p className="text-2xl font-semibold tracking-tight break-words tabular-nums">{value}</p>
+            {detail ? <p className="mt-1 text-sm text-muted-foreground">{detail}</p> : null}
+          </div>
         </div>
-        <div className="mt-1 sm:mt-auto sm:pt-4">
-          <p className="text-2xl font-semibold tracking-tight break-words tabular-nums">{value}</p>
-          {detail ? <p className="mt-1 text-sm text-muted-foreground">{detail}</p> : null}
-        </div>
-      </div>
-    </article>
+      </CardContent>
+    </Card>
   );
 }
 

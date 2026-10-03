@@ -1,4 +1,7 @@
 import { CreateUserForm } from "@/components/staff/create-user-form";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { requireAdmin } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { roleLabel } from "@/lib/roles";
@@ -21,49 +24,47 @@ export default async function StaffPage() {
         </p>
       </div>
 
-      <section className="rounded-xl border border-border bg-card p-5">
-        <h2 className="text-lg font-medium">New account</h2>
-        <div className="mt-4">
+      <Card>
+        <CardHeader>
+          <CardTitle>New account</CardTitle>
+        </CardHeader>
+        <CardContent>
           <CreateUserForm />
-        </div>
-      </section>
+        </CardContent>
+      </Card>
 
-      <section className="overflow-hidden rounded-xl border border-border bg-card">
-        <div className="border-b border-border px-5 py-3">
-          <h2 className="text-lg font-medium">People</h2>
-        </div>
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[36rem] text-left text-sm">
-            <thead className="text-muted-foreground">
-              <tr>
-                <th className="px-5 py-2 font-medium">Name</th>
-                <th className="px-5 py-2 font-medium">Email</th>
-                <th className="px-5 py-2 font-medium">Role</th>
-                <th className="px-5 py-2 font-medium">Added</th>
-              </tr>
-            </thead>
-            <tbody>
-              {users.map((user) => (
-                <tr key={user.id} className="border-t border-border">
-                  <td className="px-5 py-3 font-medium">{user.name}</td>
-                  <td className="px-5 py-3">{user.email}</td>
-                  <td className="px-5 py-3">
-                    {roleLabel(user.role)}
-                    {isSeededAdmin(user.email) ? (
-                      <span className="ml-2 rounded-md bg-muted px-1.5 py-0.5 text-xs text-muted-foreground">
-                        From .env
-                      </span>
-                    ) : null}
-                  </td>
-                  <td className="px-5 py-3 text-muted-foreground">
-                    {user.createdAt.toLocaleDateString()}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </section>
+      <Card>
+        <CardHeader className="border-b">
+          <CardTitle>People</CardTitle>
+        </CardHeader>
+        <Table className="min-w-[36rem]">
+          <TableHeader>
+            <TableRow>
+              <TableHead>Name</TableHead>
+              <TableHead>Email</TableHead>
+              <TableHead>Role</TableHead>
+              <TableHead>Added</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {users.map((user) => (
+              <TableRow key={user.id}>
+                <TableCell className="font-medium">{user.name}</TableCell>
+                <TableCell>{user.email}</TableCell>
+                <TableCell>
+                  {roleLabel(user.role)}
+                  {isSeededAdmin(user.email) ? (
+                    <Badge variant="secondary" className="ml-2">
+                      From .env
+                    </Badge>
+                  ) : null}
+                </TableCell>
+                <TableCell className="text-muted-foreground">{user.createdAt.toLocaleDateString()}</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </Card>
     </main>
   );
 }

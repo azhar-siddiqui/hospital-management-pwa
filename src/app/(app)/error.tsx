@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function AppError({
   error,
@@ -15,15 +16,19 @@ export default function AppError({
   }, [error]);
 
   return (
-    <div className="rounded-xl border border-border bg-card p-6">
-      <h1 className="text-xl font-semibold">Something went wrong</h1>
-      <p className="mt-2 text-sm text-muted-foreground">
-        This page could not be loaded. Try again, and contact support if it keeps happening.
-        {error.digest ? ` Reference ${error.digest}.` : ""}
-      </p>
-      <Button type="button" className="mt-4" onClick={() => retry()}>
-        Try again
-      </Button>
-    </div>
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-xl">Something went wrong</CardTitle>
+        <CardDescription>
+          This page could not be loaded. Try again, and contact support if it keeps happening.
+          {error.digest ? ` Reference ${error.digest}.` : ""}
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <Button type="button" onClick={() => retry()}>
+          Try again
+        </Button>
+      </CardContent>
+    </Card>
   );
 }

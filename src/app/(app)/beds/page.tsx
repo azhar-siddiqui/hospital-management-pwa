@@ -1,5 +1,8 @@
 import Link from "next/link";
 import { BedStatusForm, CreateBedForm } from "@/components/hospital/forms";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardAction, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
 import { requirePermission } from "@/lib/auth";
 import { listBeds } from "@/lib/hospital";
 import { can } from "@/lib/permissions";
@@ -20,18 +23,23 @@ export default async function BedsPage() {
       </div>
 
       {manage ? (
-        <section className="rounded-xl border border-border bg-card p-5">
-          <h2 className="text-lg font-medium">Add bed</h2>
-          <div className="mt-4">
+        <Card>
+          <CardHeader>
+            <CardTitle>Add bed</CardTitle>
+          </CardHeader>
+          <CardContent>
             <CreateBedForm />
-          </div>
-        </section>
+          </CardContent>
+        </Card>
       ) : null}
 
       {beds.length === 0 ? (
-        <p className="rounded-xl border border-dashed border-border px-5 py-8 text-sm text-muted-foreground">
-          No beds have been added.
-        </p>
+        <Empty>
+          <EmptyHeader>
+            <EmptyTitle>No beds</EmptyTitle>
+            <EmptyDescription>No beds have been added.</EmptyDescription>
+          </EmptyHeader>
+        </Empty>
       ) : (
         WARD_TYPES.map((ward) => {
           const group = beds.filter((bed) => bed.wardType === ward);
@@ -41,24 +49,31 @@ export default async function BedsPage() {
               <h2 className="text-lg font-medium">{WARD_LABELS[ward]}</h2>
               <ul className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                 {group.map((bed) => (
-                  <li key={bed.id} className="flex flex-col gap-3 rounded-xl border border-border bg-card p-4">
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <p className="font-medium">Bed {bed.bedNumber}</p>
-                        <p className="text-sm text-muted-foreground">{BED_STATUS_LABELS[bed.status]}</p>
-                      </div>
-                      <StatusDot status={bed.status} />
-                    </div>
-                    {bed.currentVisit ? (
-                      <Link href={`/visits/${bed.currentVisit.id}`} className="text-sm font-medium hover:underline">
-                        {bed.currentVisit.patient.name}
-                      </Link>
-                    ) : (
-                      <p className="text-sm text-muted-foreground">Empty</p>
-                    )}
-                    {manage && bed.status !== "OCCUPIED" ? (
-                      <BedStatusForm bedId={bed.id} status={bed.status} />
-                    ) : null}
+                  <li key={bed.id}>
+                    <Card className="h-full">
+                      <CardHeader>
+                        <CardTitle>Bed {bed.bedNumber}</CardTitle>
+                        <CardDescription>
+                          {bed.currentVisit ? (
+                            <Link href={`/visits/${bed.currentVisit.id}`} className="font-medium text-foreground hover:underline">
+                              {bed.currentVisit.patient.name}
+                            </Link>
+                          ) : (
+                            "Empty"
+                          )}
+                        </CardDescription>
+                        <CardAction>
+                          <Badge variant={bed.status === "MAINTENANCE" ? "destructive" : bed.status === "OCCUPIED" ? "secondary" : "default"}>
+                            {BED_STATUS_LABELS[bed.status]}
+                          </Badge>
+                        </CardAction>
+                      </CardHeader>
+                      {manage && bed.status !== "OCCUPIED" ? (
+                        <CardFooter>
+                          <BedStatusForm bedId={bed.id} status={bed.status} />
+                        </CardFooter>
+                      ) : null}
+                    </Card>
                   </li>
                 ))}
               </ul>
@@ -70,8 +85,3 @@ export default async function BedsPage() {
   );
 }
 
-function StatusDot({ status }: { status: "AVAILABLE" | "OCCUPIED" | "MAINTENANCE" }) {
-  const tone =
-    status === "AVAILABLE" ? "bg-primary" : status === "OCCUPIED" ? "bg-foreground" : "bg-destructive";
-  return <span aria-hidden className={`mt-1 size-2.5 rounded-full ${tone}`} />;
-}

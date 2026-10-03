@@ -1,6 +1,11 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { StartVisitForm } from "@/components/hospital/forms";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Empty, EmptyDescription, EmptyHeader } from "@/components/ui/empty";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { requirePermission } from "@/lib/auth";
 import { formatMoney, formatWhen } from "@/lib/format";
 import { getPatient } from "@/lib/hospital";
@@ -21,9 +26,9 @@ export default async function PatientPage({ params }: { params: Promise<{ id: st
   return (
     <main className="flex flex-col gap-8">
       <div>
-        <Link href="/patients" className="text-sm text-muted-foreground hover:underline">
+        <Button nativeButton={false} variant="link" className="h-auto px-0" render={<Link href="/patients" />}>
           Patients
-        </Link>
+        </Button>
         <h1 className="mt-1 text-2xl font-semibold tracking-tight break-words sm:text-3xl">{patient.name}</h1>
         <p className="mt-1 text-sm text-muted-foreground">
           {patient.phone}
@@ -34,54 +39,66 @@ export default async function PatientPage({ params }: { params: Promise<{ id: st
       </div>
 
       {visitTypes.length > 0 ? (
-        <section className="rounded-xl border border-border bg-card p-5">
-          <h2 className="text-lg font-medium">New visit</h2>
-          {active.size > 0 ? (
-            <p className="mt-1 text-sm text-muted-foreground">
-              Active now: {[...active].join(", ")}. A second active visit of the same type is rejected.
-            </p>
-          ) : null}
-          <div className="mt-4">
+        <Card>
+          <CardHeader>
+            <CardTitle>New visit</CardTitle>
+            {active.size > 0 ? (
+              <CardDescription>
+                Active now: {[...active].join(", ")}. A second active visit of the same type is rejected.
+              </CardDescription>
+            ) : null}
+          </CardHeader>
+          <CardContent>
             <StartVisitForm patientId={patient.id} visitTypes={visitTypes} />
-          </div>
-        </section>
+          </CardContent>
+        </Card>
       ) : null}
 
-      <section className="overflow-hidden rounded-xl border border-border bg-card">
-        <h2 className="border-b border-border px-5 py-3 font-medium">Visits</h2>
+      <Card>
+        <CardHeader className="border-b">
+          <CardTitle>Visits</CardTitle>
+        </CardHeader>
         {patient.visits.length === 0 ? (
-          <p className="px-5 py-8 text-sm text-muted-foreground">No visits yet.</p>
+          <CardContent>
+            <Empty className="border-0">
+              <EmptyHeader>
+                <EmptyDescription>No visits yet.</EmptyDescription>
+              </EmptyHeader>
+            </Empty>
+          </CardContent>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[36rem] text-left text-sm">
-              <thead className="text-muted-foreground">
-                <tr>
-                  <th className="px-5 py-2 font-medium">Type</th>
-                  <th className="px-5 py-2 font-medium">Status</th>
-                  <th className="px-5 py-2 font-medium">Admitted</th>
-                  <th className="px-5 py-2 font-medium">Fee</th>
-                  <th className="px-5 py-2 font-medium">Bed</th>
-                </tr>
-              </thead>
-              <tbody>
-                {patient.visits.map((visit) => (
-                  <tr key={visit.id} className="border-t border-border">
-                    <td className="px-5 py-3">
-                      <Link href={`/visits/${visit.id}`} className="font-medium hover:underline">
-                        {visit.visitType}
-                      </Link>
-                    </td>
-                    <td className="px-5 py-3">{visit.status === "ACTIVE" ? "Active" : "Discharged"}</td>
-                    <td className="px-5 py-3">{formatWhen(visit.admissionDate)}</td>
-                    <td className="px-5 py-3">{formatMoney(visit.consultationFee)}</td>
-                    <td className="px-5 py-3">{visit.bed?.bedNumber ?? "—"}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <Table className="min-w-[36rem]">
+            <TableHeader>
+              <TableRow>
+                <TableHead>Type</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Admitted</TableHead>
+                <TableHead>Fee</TableHead>
+                <TableHead>Bed</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {patient.visits.map((visit) => (
+                <TableRow key={visit.id}>
+                  <TableCell>
+                    <Link href={`/visits/${visit.id}`} className="font-medium hover:underline">
+                      {visit.visitType}
+                    </Link>
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant={visit.status === "ACTIVE" ? "default" : "secondary"}>
+                      {visit.status === "ACTIVE" ? "Active" : "Discharged"}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>{formatWhen(visit.admissionDate)}</TableCell>
+                  <TableCell>{formatMoney(visit.consultationFee)}</TableCell>
+                  <TableCell>{visit.bed?.bedNumber ?? "—"}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
         )}
-      </section>
+      </Card>
     </main>
   );
 }
