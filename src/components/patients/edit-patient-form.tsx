@@ -15,7 +15,7 @@ export function EditPatientForm({
   patient: {
     id: string;
     name: string;
-    phone: string;
+    phone: string | null;
     age: number | null;
     gender: string | null;
     address: string | null;
@@ -39,10 +39,9 @@ export function EditPatientForm({
           <Field
             label="Phone"
             name="phone"
-            required
             inputMode="tel"
             autoComplete="tel"
-            defaultValue={patient.phone}
+            defaultValue={patient.phone ?? ""}
             error={state.errors?.phone}
           />
           <Field

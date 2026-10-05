@@ -24,7 +24,7 @@ export type TableResult<T> = {
 const patientFields = {
   search: { kind: "string", path: ["name"], sortable: false, where: patientSearchWhere },
   name: { kind: "string", path: ["name"] },
-  phone: { kind: "string", path: ["phone"] },
+  phone: { kind: "string", path: ["phone"], optional: true },
   age: { kind: "number", path: ["age"], optional: true },
   gender: { kind: "enum", path: ["gender"], optional: true },
   registeredAt: { kind: "date", path: ["createdAt"] },
@@ -181,7 +181,7 @@ function latestVisitLabel(visit?: { visitType: string; status: string; admission
 export type PatientTableRow = {
   id: string;
   name: string;
-  phone: string;
+  phone: string | null;
   age: number | null;
   gender: string | null;
   registeredAt: number;
@@ -245,7 +245,7 @@ export async function queryPatients(
 function toPatientRow(patient: {
   id: string;
   name: string;
-  phone: string;
+  phone: string | null;
   age: number | null;
   gender: string | null;
   createdAt: Date;

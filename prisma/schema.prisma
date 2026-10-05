@@ -77,7 +77,7 @@ model Doctor {
 model Patient {
   id        String   @id @default(uuid())
   name      String
-  phone     String
+  phone     String?
   age       Int?
   gender    String?
   address   String?

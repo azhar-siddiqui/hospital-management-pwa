@@ -81,7 +81,7 @@ export function RegisterPatientForm({
               id="patient-section"
               icon={IconUser}
               title="Patient"
-              description="Name and phone are required."
+              description="Name is required. Phone can be left blank."
             />
             <div className="grid gap-4">
               <Field
@@ -95,7 +95,6 @@ export function RegisterPatientForm({
               <Field
                 label="Phone"
                 name="phone"
-                required
                 inputMode="tel"
                 autoComplete="tel"
                 placeholder="Mobile number"

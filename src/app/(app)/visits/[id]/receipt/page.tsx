@@ -43,7 +43,9 @@ export default async function ReceiptPage({ params }: { params: Promise<{ id: st
         <p className="text-sm text-muted-foreground">Hospital receipt</p>
         <h1 className="text-2xl font-semibold">{visit.patient.name}</h1>
         <p className="text-sm">
-          {visit.visitType} · {visit.patient.phone} · {formatWhen(visit.admissionDate)}
+          {[visit.visitType, visit.patient.phone, formatWhen(visit.admissionDate)]
+            .filter((part) => part)
+            .join(" · ")}
         </p>
       </header>
       <Table>

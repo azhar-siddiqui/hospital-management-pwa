@@ -93,8 +93,11 @@ export function parseRegistration(formData: FormData) {
 
   const nameError = boundedText(name, "Name", 2, 80);
   if (nameError) errors.name = nameError;
-  const phone = readPhone(phoneInput);
-  if (!phone) errors.phone = "Enter a phone number with 6 to 20 digits.";
+  let phone: string | null = null;
+  if (phoneInput) {
+    phone = readPhone(phoneInput);
+    if (!phone) errors.phone = "Enter a phone number with 6 to 20 digits.";
+  }
   const age = readAge(ageInput);
   if (!age.ok) errors.age = age.error;
   if (genderInput && !isGender(genderInput)) errors.gender = "Choose a gender.";
@@ -108,7 +111,7 @@ export function parseRegistration(formData: FormData) {
   if (!fee.ok) errors.consultationFee = fee.error;
   if (!isVisitType(visitType)) errors.visitType = "Choose OPD or IPD.";
 
-  if (Object.keys(errors).length > 0 || !phone || !age.ok || !fee.ok || !isVisitType(visitType)) {
+  if (Object.keys(errors).length > 0 || !age.ok || !fee.ok || !isVisitType(visitType)) {
     return { ok: false as const, errors };
   }
 
@@ -136,7 +139,7 @@ export async function registerPatient(
   actor: Actor,
   input: {
     name: string;
-    phone: string;
+    phone: string | null;
     age: number | null;
     gender: string | null;
     address: string | null;
@@ -192,8 +195,11 @@ export function parsePatientDetails(formData: FormData) {
 
   const nameError = boundedText(name, "Name", 2, 80);
   if (nameError) errors.name = nameError;
-  const phone = readPhone(phoneInput);
-  if (!phone) errors.phone = "Enter a phone number with 6 to 20 digits.";
+  let phone: string | null = null;
+  if (phoneInput) {
+    phone = readPhone(phoneInput);
+    if (!phone) errors.phone = "Enter a phone number with 6 to 20 digits.";
+  }
   const age = readAge(ageInput);
   if (!age.ok) errors.age = age.error;
   const gender = !genderInput || genderInput === "unspecified" ? "" : genderInput;
@@ -201,7 +207,7 @@ export function parsePatientDetails(formData: FormData) {
   const addressError = optionalText(address, "Address", 200);
   if (addressError) errors.address = addressError;
 
-  if (Object.keys(errors).length > 0 || !phone || !age.ok) {
+  if (Object.keys(errors).length > 0 || !age.ok) {
     return { ok: false as const, errors };
   }
 
@@ -222,7 +228,7 @@ export async function updatePatient(
   patientId: string,
   input: {
     name: string;
-    phone: string;
+    phone: string | null;
     age: number | null;
     gender: string | null;
     address: string | null;

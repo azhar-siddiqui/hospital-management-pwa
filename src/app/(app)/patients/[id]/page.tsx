@@ -1,10 +1,7 @@
-import Link from "next/link";
-import { notFound } from "next/navigation";
-import { Suspense } from "react";
-import { StartVisitForm } from "@/components/hospital/forms";
 import { DataTableSkeleton } from "@/components/data-table/data-table-skeleton";
 import { RecordCount } from "@/components/data-table/record-count";
 import { TableControlMenu } from "@/components/data-table/table-control-menu";
+import { StartVisitForm } from "@/components/hospital/forms";
 import { VisitsTable } from "@/components/tables/directory-tables";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -16,6 +13,9 @@ import { queryPatientVisits } from "@/lib/record-queries";
 import { readDataTableQuery, readTableMode, visitFilters, visitSearch } from "@/lib/table-search";
 import type { VisitTypeName } from "@/lib/validation";
 import { IconPencil } from "@tabler/icons-react";
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { Suspense } from "react";
 
 export default async function PatientPage({ params, searchParams }: PageProps<"/patients/[id]">) {
   const user = await requirePermission("patients:view");
@@ -50,15 +50,17 @@ export default async function PatientPage({ params, searchParams }: PageProps<"/
           >
             Patients
           </Button>
-          <h1 className="mt-1 text-2xl font-semibold tracking-tight break-words sm:text-3xl">
+          <h1 className="mt-1 text-2xl font-semibold tracking-tight wrap-break-word sm:text-3xl">
             {patient.name}
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            {patient.phone}
-            {patient.age !== null ? ` · ${patient.age} years` : ""}
-            {patient.gender ? ` · ${patient.gender}` : ""}
+            {[patient.phone, patient.age !== null ? `${patient.age} years` : null, patient.gender]
+              .filter((part) => part)
+              .join(" · ") || "—"}
           </p>
-          {patient.address ? <p className="mt-1 text-sm break-words">{patient.address}</p> : null}
+          {patient.address ? (
+            <p className="mt-1 text-sm wrap-break-word">{patient.address}</p>
+          ) : null}
         </div>
         {can(user, "patients:register") ? (
           <Button

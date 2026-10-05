@@ -198,7 +198,7 @@ export function PatientsTable({
       searchColumn(
         "search",
         "Name, phone, or age",
-        (row) => [row.name, row.phone, row.age ?? ""].join(" "),
+        (row) => [row.name, row.phone ?? "", row.age ?? ""].join(" "),
         patientSearchFilter,
       ),
       {
@@ -217,6 +217,7 @@ export function PatientsTable({
         id: "phone",
         accessorKey: "phone",
         header: header("Phone"),
+        cell: ({ row }) => row.original.phone || "—",
         meta: { label: "Phone" },
         size: 140,
       },

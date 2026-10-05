@@ -80,7 +80,7 @@ export default async function VisitPage({ params, searchParams }: PageProps<"/vi
 
       <Card>
         <CardContent className="grid gap-3 sm:grid-cols-2">
-          <Info label="Phone" value={visit.patient.phone} />
+          <Info label="Phone" value={visit.patient.phone || "—"} />
           <Info label="Consultation fee" value={formatMoney(visit.consultationFee)} />
           <Info label="Referring doctor" value={visit.referringDoctor || "—"} />
           <Info label="Consultation doctor" value={visit.consultationDoctor || "—"} />
