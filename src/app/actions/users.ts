@@ -1,8 +1,8 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { requireAdmin } from "@/lib/auth";
-import { roleLabel } from "@/lib/roles";
 import { createStaffUser, validateStaffInput, type FieldErrors } from "@/lib/users";
 
 export type CreateUserState = {
@@ -34,8 +34,5 @@ export async function createUser(
   }
 
   revalidatePath("/staff");
-  return {
-    ok: true,
-    message: `${roleLabel(result.user.role)} account created for ${result.user.name}.`,
-  };
+  redirect("/staff");
 }

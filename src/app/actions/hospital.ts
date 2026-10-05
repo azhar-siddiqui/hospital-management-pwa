@@ -113,7 +113,7 @@ export async function createBedAction(
   const result = await createBed(actor, parsed.data.bedNumber, parsed.data.wardType);
   if (!result.ok) return result;
   refresh("/beds", "/");
-  return { ok: true, message: `Bed ${parsed.data.bedNumber} added.` };
+  redirect("/beds");
 }
 
 export async function setBedStatusAction(
@@ -157,7 +157,7 @@ export async function createItemAction(
   const result = await createInventoryItem(actor, parsed.data);
   if (!result.ok) return result;
   refresh("/inventory", "/");
-  return { ok: true, message: `${parsed.data.itemName} added.` };
+  redirect("/inventory");
 }
 
 export async function updateStockAction(
@@ -183,5 +183,5 @@ export async function logExpenseAction(
   const result = await logExpense(actor, parsed.data);
   if (!result.ok) return result;
   refresh("/inventory", "/");
-  return { ok: true, message: "Expense recorded." };
+  redirect("/inventory");
 }

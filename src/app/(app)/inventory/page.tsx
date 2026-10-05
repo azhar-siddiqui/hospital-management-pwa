@@ -1,8 +1,8 @@
 import { DataTableSkeleton } from "@/components/data-table/data-table-skeleton";
 import { RecordCount } from "@/components/data-table/record-count";
 import { TableControlMenu } from "@/components/data-table/table-control-menu";
-import { CreateItemForm, ExpenseForm } from "@/components/hospital/forms";
 import { ExpensesTable, StockTable } from "@/components/tables/directory-tables";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { requirePermission } from "@/lib/auth";
 import { can } from "@/lib/permissions";
@@ -16,6 +16,8 @@ import {
   stockFilters,
   stockQueryKeys,
 } from "@/lib/table-search";
+import { IconPlus, IconReceipt } from "@tabler/icons-react";
+import Link from "next/link";
 import { Suspense } from "react";
 
 export default async function InventoryPage({ searchParams }: PageProps<"/inventory">) {
@@ -33,26 +35,43 @@ export default async function InventoryPage({ searchParams }: PageProps<"/invent
 
   return (
     <main className="flex min-w-0 flex-col gap-8">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">Inventory</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Stock quantities and daily expenses recorded by the signed-in user.
-        </p>
-        <Suspense fallback={null}>
-          <TableControlMenu />
-        </Suspense>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div className="min-w-0">
+          <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">Inventory</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Stock quantities and daily expenses recorded by the signed-in user.
+          </p>
+        </div>
+        {manage || can(user.role, "expenses:create") ? (
+          <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+            {manage ? (
+              <Button
+                nativeButton={false}
+                className="w-full sm:w-auto"
+                render={<Link href="/inventory/new" />}
+              >
+                <IconPlus />
+                Add item
+              </Button>
+            ) : null}
+            {can(user.role, "expenses:create") ? (
+              <Button
+                nativeButton={false}
+                variant="outline"
+                className="w-full sm:w-auto"
+                render={<Link href="/inventory/expenses/new" />}
+              >
+                <IconReceipt />
+                Record expense
+              </Button>
+            ) : null}
+          </div>
+        ) : null}
       </div>
 
-      {manage ? (
-        <Card>
-          <CardHeader>
-            <CardTitle>New item</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <CreateItemForm />
-          </CardContent>
-        </Card>
-      ) : null}
+      <Suspense fallback={null}>
+        <TableControlMenu />
+      </Suspense>
 
       <Suspense fallback={<DataTableSkeleton columnCount={6} filterCount={4} />}>
         <StockTable
@@ -63,20 +82,6 @@ export default async function InventoryPage({ searchParams }: PageProps<"/invent
           manage={manage}
         />
       </Suspense>
-
-      {can(user.role, "expenses:create") ? (
-        <Card>
-          <CardHeader>
-            <CardTitle>Record expense</CardTitle>
-            <CardDescription>
-              Saved against your account. The amount cannot be edited later from this screen.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ExpenseForm />
-          </CardContent>
-        </Card>
-      ) : null}
 
       {expenses ? (
         <Card>

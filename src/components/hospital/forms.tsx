@@ -253,11 +253,7 @@ function RegisterVisitType({ visitTypes, error }: { visitTypes: VisitTypeName[];
       <p id="visit-type-label" className="text-sm font-medium">
         Visit type
       </p>
-      <div
-        role="group"
-        aria-labelledby="visit-type-label"
-        className="grid gap-2"
-      >
+      <div role="group" aria-labelledby="visit-type-label" className="grid gap-2">
         {visitTypes.map((type) => {
           const choice = VISIT_CHOICES[type];
           const ChoiceIcon = choice.icon;
@@ -499,29 +495,42 @@ export function AssignBedForm({
 
 export function CreateBedForm() {
   const [state, action, pending] = useActionState(createBedAction, idleState);
-  const formRef = useRef<HTMLFormElement>(null);
-  useEffect(() => {
-    if (state.ok) formRef.current?.reset();
-  }, [state]);
   return (
-    <form ref={formRef} action={action} className="grid gap-4 sm:grid-cols-2">
-      <Field label="Bed number" name="bedNumber" required error={state.errors?.bedNumber} />
-      <SelectField
-        label="Ward"
-        name="wardType"
-        defaultValue="GENERAL"
-        error={state.errors?.wardType}
-        options={WARD_TYPES.map((ward) => ({
-          value: ward,
-          label: WARD_LABELS[ward],
-        }))}
-      />
-      <div className="flex flex-col gap-2 sm:col-span-2 sm:flex-row sm:items-center sm:justify-between">
-        <FormMessage message={state.message} ok={state.ok} />
-        <Button type="submit" disabled={pending}>
-          {pending ? "Adding…" : "Add bed"}
-        </Button>
-      </div>
+    <form action={action} className="min-w-0">
+      <Card className="w-full">
+        <CardContent className="grid gap-4 sm:grid-cols-2">
+          <Field label="Bed number" name="bedNumber" required error={state.errors?.bedNumber} />
+          <SelectField
+            label="Ward"
+            name="wardType"
+            defaultValue="GENERAL"
+            error={state.errors?.wardType}
+            options={WARD_TYPES.map((ward) => ({
+              value: ward,
+              label: WARD_LABELS[ward],
+            }))}
+          />
+        </CardContent>
+        <CardFooter className="flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="min-w-0 sm:flex-1">
+            <FormMessage message={state.message} ok={state.ok} />
+          </div>
+          <div className="grid grid-cols-2 gap-2 sm:flex sm:justify-end">
+            <Button
+              nativeButton={false}
+              variant="outline"
+              size="lg"
+              className="w-full sm:w-auto"
+              render={<Link href="/beds" />}
+            >
+              Cancel
+            </Button>
+            <Button type="submit" size="lg" className="w-full sm:w-auto" disabled={pending}>
+              {pending ? "Adding…" : "Add bed"}
+            </Button>
+          </div>
+        </CardFooter>
+      </Card>
     </form>
   );
 }
@@ -549,38 +558,57 @@ export function BedStatusForm({
 
 export function CreateItemForm() {
   const [state, action, pending] = useActionState(createItemAction, idleState);
-  const formRef = useRef<HTMLFormElement>(null);
-  useEffect(() => {
-    if (state.ok) formRef.current?.reset();
-  }, [state]);
   return (
-    <form ref={formRef} action={action} className="grid gap-4 sm:grid-cols-2">
-      <Field label="Item" name="itemName" required error={state.errors?.itemName} />
-      <SelectField
-        label="Category"
-        name="category"
-        defaultValue="Medicine"
-        error={state.errors?.category}
-        options={ITEM_CATEGORIES.map((category) => ({
-          value: category,
-          label: category,
-        }))}
-      />
-      <Field label="Unit" name="unit" required placeholder="Pieces" error={state.errors?.unit} />
-      <Field
-        label="Quantity"
-        name="quantity"
-        required
-        inputMode="numeric"
-        defaultValue="0"
-        error={state.errors?.quantity}
-      />
-      <div className="flex flex-col gap-2 sm:col-span-2 sm:flex-row sm:items-center sm:justify-between">
-        <FormMessage message={state.message} ok={state.ok} />
-        <Button type="submit" disabled={pending}>
-          {pending ? "Adding…" : "Add item"}
-        </Button>
-      </div>
+    <form action={action} className="min-w-0">
+      <Card className="w-full">
+        <CardContent className="grid gap-4 sm:grid-cols-2">
+          <Field label="Item" name="itemName" required error={state.errors?.itemName} />
+          <SelectField
+            label="Category"
+            name="category"
+            defaultValue="Medicine"
+            error={state.errors?.category}
+            options={ITEM_CATEGORIES.map((category) => ({
+              value: category,
+              label: category,
+            }))}
+          />
+          <Field
+            label="Unit"
+            name="unit"
+            required
+            placeholder="Pieces"
+            error={state.errors?.unit}
+          />
+          <Field
+            label="Quantity"
+            name="quantity"
+            required
+            inputMode="numeric"
+            defaultValue="0"
+            error={state.errors?.quantity}
+          />
+        </CardContent>
+        <CardFooter className="flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="min-w-0 sm:flex-1">
+            <FormMessage message={state.message} ok={state.ok} />
+          </div>
+          <div className="grid grid-cols-2 gap-2 sm:flex sm:justify-end">
+            <Button
+              nativeButton={false}
+              variant="outline"
+              size="lg"
+              className="w-full sm:w-auto"
+              render={<Link href="/inventory" />}
+            >
+              Cancel
+            </Button>
+            <Button type="submit" size="lg" className="w-full sm:w-auto" disabled={pending}>
+              {pending ? "Adding…" : "Add item"}
+            </Button>
+          </div>
+        </CardFooter>
+      </Card>
     </form>
   );
 }
@@ -610,26 +638,44 @@ export function StockForm({ itemId, quantity }: { itemId: string; quantity: numb
 
 export function ExpenseForm() {
   const [state, action, pending] = useActionState(logExpenseAction, idleState);
-  const formRef = useRef<HTMLFormElement>(null);
-  useEffect(() => {
-    if (state.ok) formRef.current?.reset();
-  }, [state]);
   return (
-    <form ref={formRef} action={action} className="grid gap-4 sm:grid-cols-2">
-      <Field label="Description" name="description" required error={state.errors?.description} />
-      <Field
-        label="Amount (INR)"
-        name="amount"
-        required
-        inputMode="decimal"
-        error={state.errors?.amount}
-      />
-      <div className="flex flex-col gap-2 sm:col-span-2 sm:flex-row sm:items-center sm:justify-between">
-        <FormMessage message={state.message} ok={state.ok} />
-        <Button type="submit" disabled={pending}>
-          {pending ? "Saving…" : "Record expense"}
-        </Button>
-      </div>
+    <form action={action} className="min-w-0">
+      <Card className="w-full">
+        <CardContent className="grid gap-4 sm:grid-cols-2">
+          <Field
+            label="Description"
+            name="description"
+            required
+            error={state.errors?.description}
+          />
+          <Field
+            label="Amount (INR)"
+            name="amount"
+            required
+            inputMode="decimal"
+            error={state.errors?.amount}
+          />
+        </CardContent>
+        <CardFooter className="flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="min-w-0 sm:flex-1">
+            <FormMessage message={state.message} ok={state.ok} />
+          </div>
+          <div className="grid grid-cols-2 gap-2 sm:flex sm:justify-end">
+            <Button
+              nativeButton={false}
+              variant="outline"
+              size="lg"
+              className="w-full sm:w-auto"
+              render={<Link href="/inventory" />}
+            >
+              Cancel
+            </Button>
+            <Button type="submit" size="lg" className="w-full sm:w-auto" disabled={pending}>
+              {pending ? "Saving…" : "Record expense"}
+            </Button>
+          </div>
+        </CardFooter>
+      </Card>
     </form>
   );
 }
