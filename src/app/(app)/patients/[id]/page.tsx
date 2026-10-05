@@ -15,6 +15,7 @@ import { can } from "@/lib/permissions";
 import { queryPatientVisits } from "@/lib/record-queries";
 import { readDataTableQuery, readTableMode, visitFilters, visitSearch } from "@/lib/table-search";
 import type { VisitTypeName } from "@/lib/validation";
+import { IconPencil } from "@tabler/icons-react";
 
 export default async function PatientPage({ params, searchParams }: PageProps<"/patients/[id]">) {
   const user = await requirePermission("patients:view");
@@ -39,24 +40,37 @@ export default async function PatientPage({ params, searchParams }: PageProps<"/
 
   return (
     <main className="flex min-w-0 flex-col gap-8">
-      <div>
-        <Button
-          nativeButton={false}
-          variant="link"
-          className="h-auto px-0"
-          render={<Link href="/patients" />}
-        >
-          Patients
-        </Button>
-        <h1 className="mt-1 text-2xl font-semibold tracking-tight break-words sm:text-3xl">
-          {patient.name}
-        </h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          {patient.phone}
-          {patient.age !== null ? ` · ${patient.age} years` : ""}
-          {patient.gender ? ` · ${patient.gender}` : ""}
-        </p>
-        {patient.address ? <p className="mt-1 text-sm">{patient.address}</p> : null}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div className="min-w-0">
+          <Button
+            nativeButton={false}
+            variant="link"
+            className="h-auto px-0"
+            render={<Link href="/patients" />}
+          >
+            Patients
+          </Button>
+          <h1 className="mt-1 text-2xl font-semibold tracking-tight break-words sm:text-3xl">
+            {patient.name}
+          </h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {patient.phone}
+            {patient.age !== null ? ` · ${patient.age} years` : ""}
+            {patient.gender ? ` · ${patient.gender}` : ""}
+          </p>
+          {patient.address ? <p className="mt-1 text-sm break-words">{patient.address}</p> : null}
+        </div>
+        {can(user, "patients:register") ? (
+          <Button
+            nativeButton={false}
+            variant="outline"
+            className="w-full sm:w-auto"
+            render={<Link href={`/patients/${patient.id}/edit`} />}
+          >
+            <IconPencil />
+            Edit details
+          </Button>
+        ) : null}
       </div>
 
       {visitTypes.length > 0 ? (

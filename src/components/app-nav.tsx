@@ -2,6 +2,8 @@ import {
   IconBed,
   IconLayoutDashboard,
   IconPackage,
+  IconHistory,
+  IconCoins,
   IconReceipt,
   IconStethoscope,
   IconUserCog,
@@ -59,11 +61,27 @@ export const NAV_ITEMS: NavItem[] = [
     tab: false,
   },
   {
+    href: "/collection",
+    label: "Collection",
+    shortLabel: "Collection",
+    permission: "reports:collection",
+    icon: IconCoins,
+    tab: false,
+  },
+  {
     href: "/staff",
     label: "Staff",
     shortLabel: "Staff",
     permission: "staff:manage",
     icon: IconUserCog,
+  },
+  {
+    href: "/activity",
+    label: "Activity",
+    shortLabel: "Activity",
+    permission: "activity:view",
+    icon: IconHistory,
+    tab: false,
   },
 ];
 
@@ -81,6 +99,9 @@ export function linksForRole(subject: string | AccessSubject) {
 export function sectionTitle(pathname: string) {
   if (pathname.startsWith("/visits/") && pathname.endsWith("/receipt")) return "Receipt";
   if (pathname.startsWith("/visits/")) return "Visit";
+  if (/^\/patients\/[^/]+\/edit$/.test(pathname)) return "Edit patient";
+  if (/^\/doctors\/[^/]+\/edit$/.test(pathname)) return "Edit doctor";
+  if (/^\/staff\/[^/]+\/edit$/.test(pathname)) return "Edit staff";
   if (pathname.startsWith("/staff/") && pathname !== "/staff/new") return "Access";
   return NAV_ITEMS.find((item) => isCurrent(pathname, item.href))?.label ?? "Hospital";
 }

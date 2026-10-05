@@ -33,7 +33,8 @@ export default async function InventoryPage({ searchParams }: PageProps<"/invent
         <div className="min-w-0">
           <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">Inventory</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Quantities on hand. Change a quantity in the table.
+            Quantities on hand.
+            {manage ? " Change a quantity in the Action column." : ""}
           </p>
           <RecordCount total={total} capped={capped} />
         </div>

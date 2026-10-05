@@ -19,8 +19,10 @@ export const PERMISSIONS = [
   "reports:fees",
   "reports:charges",
   "reports:expenses",
+  "reports:collection",
   "staff:manage",
   "doctors:manage",
+  "activity:view",
 ] as const;
 
 export type Permission = (typeof PERMISSIONS)[number];
@@ -124,7 +126,7 @@ export const PERMISSION_GROUPS = [
   },
   {
     label: "Reports",
-    description: "Today's figures on the home screen. These do not open a separate page.",
+    description: "Today's figures on the home screen, and the collection report.",
     items: [
       {
         permission: "reports:fees",
@@ -141,11 +143,17 @@ export const PERMISSION_GROUPS = [
         label: "See today's expenses",
         detail: "Shows today's expenses on the home screen.",
       },
+      {
+        permission: "reports:collection",
+        label: "View collection",
+        detail:
+          "Opens Collection for a date range, including referring and consultation totals for a doctor.",
+      },
     ],
   },
   {
     label: "Administration",
-    description: "Staff accounts and the doctor list.",
+    description: "Staff accounts, the doctor list, and the edit log.",
     items: [
       {
         permission: "staff:manage",
@@ -156,6 +164,11 @@ export const PERMISSION_GROUPS = [
         permission: "doctors:manage",
         label: "Add and view doctors",
         detail: "Opens Doctors and Add doctor.",
+      },
+      {
+        permission: "activity:view",
+        label: "View the edit log",
+        detail: "Opens Activity, where each saved edit is listed.",
       },
     ],
   },
@@ -178,6 +191,7 @@ const grants: Record<AppRole, readonly Permission[]> = {
     "visits:opd",
     "beds:view",
     "reports:fees",
+    "reports:collection",
     "doctors:manage",
   ],
   DOCTOR: ["patients:view", "visits:note", "visits:discharge", "beds:view"],
@@ -225,7 +239,22 @@ export function can(subject: string | AccessSubject, permission: Permission) {
   return list.includes(permission);
 }
 
+export function permissionLabel(permission: string) {
+  for (const group of PERMISSION_GROUPS) {
+    for (const item of group.items) {
+      if (item.permission === permission) return item.label;
+    }
+  }
+  return permission;
+}
+
 export function permissionForPath(pathname: string): Permission | null {
+  if (pathname === "/activity" || pathname.startsWith("/activity/")) {
+    return "activity:view";
+  }
+  if (pathname === "/collection" || pathname.startsWith("/collection/")) {
+    return "reports:collection";
+  }
   if (pathname === "/staff" || pathname.startsWith("/staff/")) {
     return "staff:manage";
   }
@@ -241,7 +270,7 @@ export function permissionForPath(pathname: string): Permission | null {
   if (pathname === "/beds" || pathname.startsWith("/beds/")) {
     return "beds:view";
   }
-  if (pathname === "/patients/new") {
+  if (pathname === "/patients/new" || /^\/patients\/[^/]+\/edit$/.test(pathname)) {
     return "patients:register";
   }
   if (
@@ -263,6 +292,7 @@ const RETURN_PREFIXES = [
   "/inventory",
   "/expenses",
   "/doctors",
+  "/collection",
 ];
 
 export function safeReturnPath(value: string | null | undefined) {

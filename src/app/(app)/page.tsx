@@ -27,7 +27,9 @@ import {
   IconActivity,
   IconBed,
   IconCash,
+  IconCoins,
   IconPackage,
+  IconHistory,
   IconReceipt,
   IconReceipt2,
   IconReportMoney,
@@ -57,8 +59,12 @@ export default async function DashboardPage() {
     actions.push({ href: "/inventory", label: "Inventory", icon: IconPackage });
   if (can(user, "expenses:view"))
     actions.push({ href: "/expenses", label: "Expenses", icon: IconReceipt });
+  if (can(user, "reports:collection"))
+    actions.push({ href: "/collection", label: "Collection", icon: IconCoins });
   if (can(user, "staff:manage"))
     actions.push({ href: "/staff", label: "Staff", icon: IconUserCog });
+  if (can(user, "activity:view"))
+    actions.push({ href: "/activity", label: "Activity", icon: IconHistory });
 
   return (
     <main className="flex flex-col gap-6">

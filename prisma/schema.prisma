@@ -169,3 +169,18 @@ model Expense {
   @@index([expenseDate])
   @@index([loggedById])
 }
+
+model AuditLog {
+  id          String   @id @default(uuid())
+  actorId     String
+  actorName   String
+  subjectType String
+  subjectId   String
+  subjectName String
+  summary     String
+  changes     Json
+  createdAt   DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([subjectType, subjectId])
+}

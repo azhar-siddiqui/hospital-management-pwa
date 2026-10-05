@@ -16,9 +16,11 @@ import {
   parseExpense,
   parseInventoryItem,
   parseNote,
+  parsePatientDetails,
   parseRegistration,
   parseVisitStart,
   registerPatient,
+  updatePatient,
   saveClinicalNote,
   setBedAvailability,
   startVisit,
@@ -43,6 +45,21 @@ export async function registerPatientAction(
   if (!result.ok) return { ok: false, message: result.message };
   refresh("/", "/patients", `/patients/${result.patientId}`);
   redirect(`/patients/${result.patientId}`);
+}
+
+export async function updatePatientAction(
+  _state: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  const actor = await requireUser();
+  const patientId = readText(formData.get("patientId"));
+  const parsed = parsePatientDetails(formData);
+  if (!parsed.ok) return { ok: false, errors: parsed.errors };
+  const result = await updatePatient(actor, patientId, parsed.data);
+  if (!result.ok) return { ok: false, message: result.message };
+  if (result.unchanged) return { ok: true, message: "No changes to save." };
+  refresh("/", "/patients", `/patients/${patientId}`, "/activity");
+  redirect(`/patients/${patientId}`);
 }
 
 export async function startVisitAction(

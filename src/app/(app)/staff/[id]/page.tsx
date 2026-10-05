@@ -38,10 +38,26 @@ export default async function StaffPermissionsPage({ params }: PageProps<"/staff
         <p className="mt-3 text-xs font-medium tracking-wide text-muted-foreground uppercase">
           Access
         </p>
-        <h1 className="mt-1 text-2xl font-semibold tracking-tight sm:text-3xl">{staff.name}</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          {roleLabel(staff.role)} · {staff.email}
-        </p>
+        <div className="mt-2 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div className="min-w-0">
+            <h1 className="text-2xl font-semibold tracking-tight break-words sm:text-3xl">
+              {staff.name}
+            </h1>
+            <p className="mt-1 text-sm break-words text-muted-foreground">
+              {roleLabel(staff.role)} · {staff.email}
+            </p>
+          </div>
+          {staff.role === "ADMIN" ? null : (
+            <Button
+              nativeButton={false}
+              variant="outline"
+              className="w-full sm:w-auto"
+              render={<Link href={`/staff/${staff.id}/edit`} />}
+            >
+              Edit details
+            </Button>
+          )}
+        </div>
       </header>
 
       {staff.role === "ADMIN" ? (

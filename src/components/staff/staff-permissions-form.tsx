@@ -66,7 +66,7 @@ export function StaffPermissionsForm({
 
   useEffect(() => {
     if (!state.ok || !submitted.current) return;
-    setSaved(submitted.current);
+    setSaved(new Set(submitted.current));
     submitted.current = null;
   }, [state]);
 

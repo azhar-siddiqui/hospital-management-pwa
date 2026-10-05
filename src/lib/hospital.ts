@@ -1,4 +1,5 @@
 import { Prisma } from "@/generated/prisma/client";
+import { fieldChanges, showValue, writeAudit } from "@/lib/audit";
 import { doctorSnapshot } from "@/lib/doctors";
 import { hospitalTimeZone, roundMoney, startOfHospitalDay } from "@/lib/format";
 import { can } from "@/lib/permissions";
@@ -179,6 +180,105 @@ export async function registerPatient(
     if (error instanceof OperationError) return { ok: false as const, message: error.message };
     throw error;
   }
+}
+
+export function parsePatientDetails(formData: FormData) {
+  const errors: Record<string, string> = {};
+  const name = readText(formData.get("name"));
+  const phoneInput = readText(formData.get("phone"));
+  const ageInput = readText(formData.get("age"));
+  const genderInput = readText(formData.get("gender"));
+  const address = readText(formData.get("address"));
+
+  const nameError = boundedText(name, "Name", 2, 80);
+  if (nameError) errors.name = nameError;
+  const phone = readPhone(phoneInput);
+  if (!phone) errors.phone = "Enter a phone number with 6 to 20 digits.";
+  const age = readAge(ageInput);
+  if (!age.ok) errors.age = age.error;
+  const gender = !genderInput || genderInput === "unspecified" ? "" : genderInput;
+  if (gender && !isGender(gender)) errors.gender = "Choose a gender.";
+  const addressError = optionalText(address, "Address", 200);
+  if (addressError) errors.address = addressError;
+
+  if (Object.keys(errors).length > 0 || !phone || !age.ok) {
+    return { ok: false as const, errors };
+  }
+
+  return {
+    ok: true as const,
+    data: {
+      name,
+      phone,
+      age: age.age,
+      gender: gender || null,
+      address: address || null,
+    },
+  };
+}
+
+export async function updatePatient(
+  actor: Actor & { name: string },
+  patientId: string,
+  input: {
+    name: string;
+    phone: string;
+    age: number | null;
+    gender: string | null;
+    address: string | null;
+  },
+) {
+  const denied = deny(actor, "patients:register");
+  if (denied) return denied;
+  if (!isUuid(patientId)) return { ok: false as const, message: "Patient not found." };
+  const current = await prisma.patient.findUnique({
+    where: { id: patientId },
+    select: { id: true, name: true, phone: true, age: true, gender: true, address: true },
+  });
+  if (!current) return { ok: false as const, message: "Patient not found." };
+
+  const changes = fieldChanges([
+    { field: "name", label: "Name", before: showValue(current.name), after: showValue(input.name) },
+    {
+      field: "phone",
+      label: "Phone",
+      before: showValue(current.phone),
+      after: showValue(input.phone),
+    },
+    {
+      field: "age",
+      label: "Age",
+      before: showValue(current.age),
+      after: showValue(input.age),
+    },
+    {
+      field: "gender",
+      label: "Gender",
+      before: showValue(current.gender),
+      after: showValue(input.gender),
+    },
+    {
+      field: "address",
+      label: "Address",
+      before: showValue(current.address),
+      after: showValue(input.address),
+    },
+  ]);
+  if (changes.length === 0) return { ok: true as const, unchanged: true as const };
+
+  await prisma.$transaction(async (tx) => {
+    await tx.patient.update({ where: { id: current.id }, data: input });
+    await writeAudit(tx, {
+      actorId: actor.id,
+      actorName: actor.name,
+      subjectType: "patient",
+      subjectId: current.id,
+      subjectName: input.name,
+      summary: `Updated patient ${input.name}`,
+      changes,
+    });
+  });
+  return { ok: true as const, unchanged: false as const };
 }
 
 export function parseVisitStart(formData: FormData) {

@@ -135,6 +135,36 @@ function dateCell(value: number) {
   return <span className="text-muted-foreground">{formatWhen(new Date(value))}</span>;
 }
 
+function ActionLinks({ children }: { children: React.ReactNode }) {
+  return <div className="flex flex-wrap items-center gap-x-3 gap-y-1">{children}</div>;
+}
+
+function ActionLink({ href, children }: { href: string; children: React.ReactNode }) {
+  return (
+    <Link href={href} className="font-medium whitespace-nowrap text-primary hover:underline">
+      {children}
+    </Link>
+  );
+}
+
+function NoAction() {
+  return <span className="text-muted-foreground">—</span>;
+}
+
+function actionsColumn<TData extends RowData>(
+  render: (row: TData) => React.ReactNode,
+  size = 120,
+): ColumnDef<DataTableFeatures, TData> {
+  return {
+    id: "actions",
+    header: "Action",
+    cell: ({ row }) => render(row.original),
+    enableSorting: false,
+    enableHiding: false,
+    size,
+  };
+}
+
 function LatestVisitLabel({ label }: { label: string }) {
   const separator = " · ";
   const first = label.indexOf(separator);
@@ -153,11 +183,13 @@ export function PatientsTable({
   pageCount,
   dataMode,
   filterMode,
+  canEdit = false,
 }: {
   data: PatientTableRow[];
   pageCount: number;
   dataMode: DataMode;
   filterMode: FilterMode;
+  canEdit?: boolean;
 }) {
   const columns = React.useMemo<ColumnDef<DataTableFeatures, PatientTableRow>[]>(() => {
     const header = headers<PatientTableRow>();
@@ -224,8 +256,17 @@ export function PatientsTable({
         enableColumnFilter: false,
         size: 240,
       },
+      actionsColumn<PatientTableRow>(
+        (patient) => (
+          <ActionLinks>
+            <ActionLink href={`/patients/${patient.id}`}>Open</ActionLink>
+            {canEdit ? <ActionLink href={`/patients/${patient.id}/edit`}>Edit</ActionLink> : null}
+          </ActionLinks>
+        ),
+        canEdit ? 132 : 84,
+      ),
     ];
-  }, []);
+  }, [canEdit]);
 
   return (
     <RecordTable
@@ -295,6 +336,10 @@ export function DoctorsTable({
         enableColumnFilter: true,
         size: 180,
       },
+      actionsColumn<DoctorTableRow>(
+        (doctor) => <ActionLink href={`/doctors/${doctor.id}/edit`}>Edit</ActionLink>,
+        84,
+      ),
     ];
   }, []);
 
@@ -386,28 +431,18 @@ export function StaffTable({
         enableColumnFilter: true,
         size: 180,
       },
-      ...(canEdit
-        ? [
-            {
-              id: "access",
-              header: "Access",
-              cell: ({ row }) =>
-                row.original.role === "ADMIN" ? (
-                  <span className="text-muted-foreground">Full access</span>
-                ) : (
-                  <Link
-                    href={`/staff/${row.original.id}`}
-                    className="font-medium text-primary hover:underline"
-                  >
-                    Permissions
-                  </Link>
-                ),
-              enableSorting: false,
-              enableHiding: false,
-              size: 140,
-            } satisfies ColumnDef<DataTableFeatures, StaffTableRow>,
-          ]
-        : []),
+      actionsColumn<StaffTableRow>((member) => {
+        if (member.role === "ADMIN") {
+          return <span className="text-muted-foreground">Full access</span>;
+        }
+        if (!canEdit) return <NoAction />;
+        return (
+          <ActionLinks>
+            <ActionLink href={`/staff/${member.id}/edit`}>Details</ActionLink>
+            <ActionLink href={`/staff/${member.id}`}>Permissions</ActionLink>
+          </ActionLinks>
+        );
+      }, 180),
     ];
   }, [canEdit]);
 
@@ -471,10 +506,7 @@ export function StockTable({
         header: header("Quantity"),
         cell: ({ row }) =>
           manage ? (
-            <span className="inline-flex flex-wrap items-center gap-2">
-              <StockForm itemId={row.original.id} quantity={row.original.quantity} />
-              <span className="text-muted-foreground">{row.original.unit}</span>
-            </span>
+            row.original.quantity
           ) : (
             <span>
               {row.original.quantity} {row.original.unit}
@@ -482,7 +514,7 @@ export function StockTable({
           ),
         meta: { label: "Quantity", variant: "range", range: [0, 1000] },
         enableColumnFilter: true,
-        size: manage ? 280 : 140,
+        size: 120,
       },
       {
         id: "unit",
@@ -500,6 +532,10 @@ export function StockTable({
         enableColumnFilter: true,
         size: 180,
       },
+      actionsColumn<StockTableRow>(
+        (item) => (manage ? <StockForm itemId={item.id} quantity={item.quantity} /> : <NoAction />),
+        manage ? 220 : 84,
+      ),
     ];
   }, [manage]);
 
@@ -571,6 +607,7 @@ export function ExpensesTable({
         enableColumnFilter: true,
         size: 180,
       },
+      actionsColumn<ExpenseTableRow>(() => <NoAction />, 84),
     ];
   }, []);
 
@@ -657,6 +694,10 @@ export function VisitsTable({
         meta: { label: "Bed" },
         size: 110,
       },
+      actionsColumn<VisitTableRow>(
+        (visit) => <ActionLink href={`/visits/${visit.id}`}>Open</ActionLink>,
+        84,
+      ),
     ];
   }, []);
 
@@ -732,6 +773,7 @@ export function ChargesTable({
         enableColumnFilter: true,
         size: 180,
       },
+      actionsColumn<ChargeTableRow>(() => <NoAction />, 84),
     ];
   }, []);
 
