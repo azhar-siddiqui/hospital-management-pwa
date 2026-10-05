@@ -359,7 +359,7 @@ function DataTableSortItem({
         }}
       >
         <SelectTrigger aria-controls={directionListboxId} className="w-24">
-          <SelectValue />
+          <SelectValue className="capitalize" />
         </SelectTrigger>
         <SelectContent
           id={directionListboxId}
