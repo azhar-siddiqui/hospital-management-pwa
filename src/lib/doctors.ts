@@ -55,14 +55,13 @@ export async function createDoctor(
   return { ok: true as const, id: doctor.id };
 }
 
-export async function referringDoctorSnapshot(id: string | null) {
+export async function doctorSnapshot(id: string | null, label: string) {
   if (!id) return { ok: true as const, id: null, name: null };
-  if (!isUuid(id))
-    return { ok: false as const, message: "Choose a referring doctor from the list." };
+  if (!isUuid(id)) return { ok: false as const, message: `Choose a ${label} from the list.` };
   const doctor = await prisma.doctor.findUnique({
     where: { id },
     select: { id: true, name: true },
   });
-  if (!doctor) return { ok: false as const, message: "Choose a referring doctor from the list." };
+  if (!doctor) return { ok: false as const, message: `Choose a ${label} from the list.` };
   return { ok: true as const, id: doctor.id, name: doctor.name };
 }

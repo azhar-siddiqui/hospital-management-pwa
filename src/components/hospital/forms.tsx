@@ -82,6 +82,12 @@ export function RegisterPatientForm({
         className="sm:col-span-2"
       />
       <DoctorCombobox doctors={doctors} error={state.errors?.referringDoctorId} />
+      <DoctorCombobox
+        doctors={doctors}
+        name="consultationDoctorId"
+        label="Consultation doctor"
+        error={state.errors?.consultationDoctorId}
+      />
       <Field
         label="Consultation fee (INR)"
         name="consultationFee"
@@ -114,6 +120,12 @@ export function StartVisitForm({
     <form action={action} className="grid gap-4 sm:grid-cols-2">
       <input type="hidden" name="patientId" value={patientId} />
       <DoctorCombobox doctors={doctors} error={state.errors?.referringDoctorId} />
+      <DoctorCombobox
+        doctors={doctors}
+        name="consultationDoctorId"
+        label="Consultation doctor"
+        error={state.errors?.consultationDoctorId}
+      />
       <Field
         label="Consultation fee (INR)"
         name="consultationFee"

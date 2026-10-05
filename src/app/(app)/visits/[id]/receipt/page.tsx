@@ -78,6 +78,9 @@ export default async function ReceiptPage({ params }: { params: Promise<{ id: st
       {visit.referringDoctor ? (
         <p className="text-sm">Referring doctor: {visit.referringDoctor}</p>
       ) : null}
+      {visit.consultationDoctor ? (
+        <p className="text-sm">Consultation doctor: {visit.consultationDoctor}</p>
+      ) : null}
       <p className="text-xs text-muted-foreground">
         Amounts in INR. This is a billing summary, not a tax invoice.
       </p>

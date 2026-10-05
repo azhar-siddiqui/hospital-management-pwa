@@ -83,6 +83,7 @@ export default async function VisitPage({ params, searchParams }: PageProps<"/vi
           <Info label="Phone" value={visit.patient.phone} />
           <Info label="Consultation fee" value={formatMoney(visit.consultationFee)} />
           <Info label="Referring doctor" value={visit.referringDoctor || "—"} />
+          <Info label="Consultation doctor" value={visit.consultationDoctor || "—"} />
           <Info
             label="Bed"
             value={

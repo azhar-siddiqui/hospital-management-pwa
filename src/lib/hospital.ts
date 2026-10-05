@@ -1,5 +1,5 @@
 import { Prisma } from "@/generated/prisma/client";
-import { referringDoctorSnapshot } from "@/lib/doctors";
+import { doctorSnapshot } from "@/lib/doctors";
 import { hospitalTimeZone, roundMoney, startOfHospitalDay } from "@/lib/format";
 import { can } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
@@ -86,6 +86,7 @@ export function parseRegistration(formData: FormData) {
   const genderInput = readText(formData.get("gender"));
   const address = readText(formData.get("address"));
   const referringDoctorId = readText(formData.get("referringDoctorId"));
+  const consultationDoctorId = readText(formData.get("consultationDoctorId"));
   const feeInput = readText(formData.get("consultationFee"));
   const visitType = readText(formData.get("visitType"));
 
@@ -100,6 +101,8 @@ export function parseRegistration(formData: FormData) {
   if (addressError) errors.address = addressError;
   if (referringDoctorId && !isUuid(referringDoctorId))
     errors.referringDoctorId = "Choose a referring doctor.";
+  if (consultationDoctorId && !isUuid(consultationDoctorId))
+    errors.consultationDoctorId = "Choose a consultation doctor.";
   const fee = readMoney(feeInput || "0", "Consultation fee", true);
   if (!fee.ok) errors.consultationFee = fee.error;
   if (!isVisitType(visitType)) errors.visitType = "Choose OPD or IPD.";
@@ -117,6 +120,7 @@ export function parseRegistration(formData: FormData) {
       gender: genderInput || null,
       address: address || null,
       referringDoctorId: referringDoctorId || null,
+      consultationDoctorId: consultationDoctorId || null,
       consultationFee: fee.amount,
       visitType,
     },
@@ -136,6 +140,7 @@ export async function registerPatient(
     gender: string | null;
     address: string | null;
     referringDoctorId: string | null;
+    consultationDoctorId: string | null;
     consultationFee: number;
     visitType: VisitTypeName;
   },
@@ -143,8 +148,10 @@ export async function registerPatient(
   const denied =
     deny(actor.role, "patients:register") ?? deny(actor.role, permissionForVisit(input.visitType));
   if (denied) return denied;
-  const doctor = await referringDoctorSnapshot(input.referringDoctorId);
+  const doctor = await doctorSnapshot(input.referringDoctorId, "referring doctor");
   if (!doctor.ok) return doctor;
+  const consultant = await doctorSnapshot(input.consultationDoctorId, "consultation doctor");
+  if (!consultant.ok) return consultant;
 
   try {
     const patient = await prisma.patient.create({
@@ -159,6 +166,8 @@ export async function registerPatient(
             visitType: input.visitType,
             referringDoctor: doctor.name,
             referringDoctorId: doctor.id,
+            consultationDoctor: consultant.name,
+            consultationDoctorId: consultant.id,
             consultationFee: input.consultationFee,
           },
         },
@@ -175,9 +184,12 @@ export async function registerPatient(
 export function parseVisitStart(formData: FormData) {
   const errors: Record<string, string> = {};
   const referringDoctorId = readText(formData.get("referringDoctorId"));
+  const consultationDoctorId = readText(formData.get("consultationDoctorId"));
   const visitType = readText(formData.get("visitType"));
   if (referringDoctorId && !isUuid(referringDoctorId))
     errors.referringDoctorId = "Choose a referring doctor.";
+  if (consultationDoctorId && !isUuid(consultationDoctorId))
+    errors.consultationDoctorId = "Choose a consultation doctor.";
   const fee = readMoney(readText(formData.get("consultationFee")) || "0", "Consultation fee", true);
   if (!fee.ok) errors.consultationFee = fee.error;
   if (!isVisitType(visitType)) errors.visitType = "Choose OPD or IPD.";
@@ -188,6 +200,7 @@ export function parseVisitStart(formData: FormData) {
     ok: true as const,
     data: {
       referringDoctorId: referringDoctorId || null,
+      consultationDoctorId: consultationDoctorId || null,
       consultationFee: fee.amount,
       visitType,
     },
@@ -200,14 +213,17 @@ export async function startVisit(
   input: {
     visitType: VisitTypeName;
     referringDoctorId: string | null;
+    consultationDoctorId: string | null;
     consultationFee: number;
   },
 ) {
   const denied = deny(actor.role, permissionForVisit(input.visitType));
   if (denied) return denied;
   if (!isUuid(patientId)) return { ok: false as const, message: "Patient not found." };
-  const doctor = await referringDoctorSnapshot(input.referringDoctorId);
+  const doctor = await doctorSnapshot(input.referringDoctorId, "referring doctor");
   if (!doctor.ok) return doctor;
+  const consultant = await doctorSnapshot(input.consultationDoctorId, "consultation doctor");
+  if (!consultant.ok) return consultant;
 
   try {
     const visit = await prisma.$transaction(
@@ -225,6 +241,8 @@ export async function startVisit(
             visitType: input.visitType,
             referringDoctor: doctor.name,
             referringDoctorId: doctor.id,
+            consultationDoctor: consultant.name,
+            consultationDoctorId: consultant.id,
             consultationFee: input.consultationFee,
           },
           select: { id: true },
@@ -254,6 +272,7 @@ export async function getVisit(id: string) {
       visitType: true,
       status: true,
       referringDoctor: true,
+      consultationDoctor: true,
       consultationFee: true,
       admissionDate: true,
       dischargeDate: true,

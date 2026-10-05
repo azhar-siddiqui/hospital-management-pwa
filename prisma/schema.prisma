@@ -67,7 +67,8 @@ model Doctor {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  visits Visit[]
+  visits          Visit[] @relation("ReferringDoctor")
+  consultedVisits Visit[] @relation("ConsultationDoctor")
 
   @@index([name])
 }
@@ -90,20 +91,23 @@ model Patient {
 }
 
 model Visit {
-  id                String      @id @default(uuid())
-  patientId         String
-  visitType         VisitType
-  referringDoctor   String? // Name at the time of the visit, kept for receipts
-  referringDoctorId String?
-  consultationFee   Float       @default(0.0)
-  admissionDate     DateTime    @default(now())
-  dischargeDate     DateTime?
-  status            VisitStatus @default(ACTIVE)
-  clinicalNote      String?
+  id                   String      @id @default(uuid())
+  patientId            String
+  visitType            VisitType
+  referringDoctor      String? // Name at the time of the visit, kept for receipts
+  referringDoctorId    String?
+  consultationDoctor   String? // Consulting doctor name at the time of the visit, kept for receipts
+  consultationDoctorId String?
+  consultationFee      Float       @default(0.0)
+  admissionDate        DateTime    @default(now())
+  dischargeDate        DateTime?
+  status               VisitStatus @default(ACTIVE)
+  clinicalNote         String?
 
   // Relations
   patient        Patient         @relation(fields: [patientId], references: [id])
-  doctor         Doctor?         @relation(fields: [referringDoctorId], references: [id], onDelete: SetNull)
+  doctor         Doctor?         @relation("ReferringDoctor", fields: [referringDoctorId], references: [id], onDelete: SetNull)
+  consultant     Doctor?         @relation("ConsultationDoctor", fields: [consultationDoctorId], references: [id], onDelete: SetNull)
   bed            Bed?            @relation(fields: [bedId], references: [id])
   bedId          String?         @unique // A visit occupies exactly one bed at a time
   serviceCharges ServiceCharge[]
@@ -112,6 +116,7 @@ model Visit {
   @@index([status, visitType])
   @@index([admissionDate])
   @@index([referringDoctorId])
+  @@index([consultationDoctorId])
 }
 
 model Bed {
