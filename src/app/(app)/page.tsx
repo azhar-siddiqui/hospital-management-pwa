@@ -28,6 +28,7 @@ import {
   IconBed,
   IconCash,
   IconPackage,
+  IconReceipt,
   IconReceipt2,
   IconReportMoney,
   IconStethoscope,
@@ -54,6 +55,8 @@ export default async function DashboardPage() {
   if (showPatients) actions.unshift({ href: "/patients", label: "Patients", icon: IconUsers });
   if (can(user.role, "inventory:view"))
     actions.push({ href: "/inventory", label: "Inventory", icon: IconPackage });
+  if (can(user.role, "expenses:view"))
+    actions.push({ href: "/expenses", label: "Expenses", icon: IconReceipt });
   if (can(user.role, "staff:manage"))
     actions.push({ href: "/staff", label: "Staff", icon: IconUserCog });
 

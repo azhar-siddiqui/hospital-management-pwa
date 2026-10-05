@@ -182,6 +182,6 @@ export async function logExpenseAction(
   if (!parsed.ok) return { ok: false, errors: parsed.errors };
   const result = await logExpense(actor, parsed.data);
   if (!result.ok) return result;
-  refresh("/inventory", "/");
-  redirect("/inventory");
+  refresh("/expenses", "/");
+  redirect("/expenses");
 }

@@ -2,6 +2,7 @@ import {
   IconBed,
   IconLayoutDashboard,
   IconPackage,
+  IconReceipt,
   IconStethoscope,
   IconUserCog,
   IconUsers,
@@ -15,6 +16,8 @@ export type NavItem = {
   shortLabel: string;
   permission: Permission | null;
   icon: Icon;
+  /** Phone tab bar. False keeps the item in the sidebar and phone menu only. */
+  tab?: boolean;
 };
 
 export const NAV_ITEMS: NavItem[] = [
@@ -46,6 +49,14 @@ export const NAV_ITEMS: NavItem[] = [
     shortLabel: "Stock",
     permission: "inventory:view",
     icon: IconPackage,
+  },
+  {
+    href: "/expenses",
+    label: "Expenses",
+    shortLabel: "Expense",
+    permission: "expenses:view",
+    icon: IconReceipt,
+    tab: false,
   },
   {
     href: "/staff",

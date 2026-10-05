@@ -666,7 +666,7 @@ export function ExpenseForm() {
               variant="outline"
               size="lg"
               className="w-full sm:w-auto"
-              render={<Link href="/inventory" />}
+              render={<Link href="/expenses" />}
             >
               Cancel
             </Button>

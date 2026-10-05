@@ -138,6 +138,10 @@ export const inventorySearch = createSearchParamsCache({
     },
     stockQueryKeys,
   ),
+});
+
+export const expenseSearch = createSearchParamsCache({
+  ...modeParsers,
   ...tableParsers(
     {
       filterableColumns: expenseFilters,

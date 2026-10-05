@@ -76,6 +76,9 @@ export function permissionForPath(pathname: string): Permission | null {
   if (pathname === "/doctors" || pathname.startsWith("/doctors/")) {
     return "doctors:manage";
   }
+  if (pathname === "/expenses" || pathname.startsWith("/expenses/")) {
+    return "expenses:view";
+  }
   if (pathname === "/inventory" || pathname.startsWith("/inventory/")) {
     return "inventory:view";
   }
@@ -96,7 +99,15 @@ export function permissionForPath(pathname: string): Permission | null {
   return null;
 }
 
-const RETURN_PREFIXES = ["/staff", "/patients", "/visits", "/beds", "/inventory", "/doctors"];
+const RETURN_PREFIXES = [
+  "/staff",
+  "/patients",
+  "/visits",
+  "/beds",
+  "/inventory",
+  "/expenses",
+  "/doctors",
+];
 
 export function safeReturnPath(value: string | null | undefined) {
   if (

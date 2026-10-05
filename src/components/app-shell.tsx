@@ -44,6 +44,7 @@ export function AppShell({ user, children }: { user: ShellUser; children: React.
   }
 
   const links = linksForRole(user.role);
+  const tabs = links.filter((item) => item.tab !== false);
 
   return (
     <div className="flex min-h-full flex-1 bg-muted/40 print:bg-white">
@@ -110,7 +111,7 @@ export function AppShell({ user, children }: { user: ShellUser; children: React.
           aria-label="Primary"
         >
           <ul className="flex">
-            {links.map((item) => {
+            {tabs.map((item) => {
               const current = isCurrent(pathname, item.href);
               const Icon = item.icon;
               return (
