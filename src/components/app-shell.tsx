@@ -1,9 +1,17 @@
 "use client";
 
 import { logout } from "@/app/actions/auth";
-import { isCurrent, linksForRole, sectionTitle, type NavItem } from "@/components/app-nav";
+import {
+  groupNav,
+  isCurrent,
+  linksForRole,
+  sectionTitle,
+  type NavItem,
+} from "@/components/app-nav";
+import { dashboardCollection, freeBeds, opdToday } from "@/lib/dashboard-sample";
 import { roleLabel } from "@/lib/roles";
 import { Button } from "@/components/ui/button";
+import { cn } from "cn";
 import { IconLogout, IconMenu2, IconX } from "@tabler/icons-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -11,7 +19,15 @@ import { useEffect, useId, useRef, useState, type KeyboardEvent, type RefObject 
 
 type ShellUser = { name: string; role: string; permissions: string[] };
 
-export function AppShell({ user, children }: { user: ShellUser; children: React.ReactNode }) {
+export function AppShell({
+  user,
+  todayLabel,
+  children,
+}: {
+  user: ShellUser;
+  todayLabel: string;
+  children: React.ReactNode;
+}) {
   const pathname = usePathname();
   const drawerId = useId();
   const closeRef = useRef<HTMLButtonElement>(null);
@@ -48,7 +64,7 @@ export function AppShell({ user, children }: { user: ShellUser; children: React.
 
   return (
     <div className="flex min-h-full flex-1 bg-muted/40 print:bg-white">
-      <aside className="app-chrome sticky top-0 hidden h-dvh w-60 shrink-0 border-r border-sidebar-border lg:flex">
+      <aside className="app-chrome app-sidebar sticky top-0 hidden h-dvh w-60 shrink-0 border-r border-sidebar-border lg:flex">
         <SidebarPanel user={user} links={links} pathname={pathname} />
       </aside>
 
@@ -99,6 +115,27 @@ export function AppShell({ user, children }: { user: ShellUser; children: React.
             <p className="min-w-0 flex-1 truncate text-sm font-semibold">
               {sectionTitle(pathname)}
             </p>
+          </div>
+        </header>
+
+        <header className="app-chrome sticky top-0 z-20 hidden border-b border-border bg-card/95 backdrop-blur-md lg:block">
+          <div className="flex h-14 min-w-0 items-center gap-4 px-8">
+            <p className="min-w-0 flex-1 truncate text-sm font-semibold">
+              {sectionTitle(pathname)}
+            </p>
+            <div className="flex shrink-0 items-center gap-3">
+              <p className="text-sm text-muted-foreground">{todayLabel}</p>
+              <span className="h-5 w-px bg-border" aria-hidden />
+              <span
+                className="grid size-8 place-items-center rounded-full bg-muted text-xs font-semibold"
+                aria-hidden
+              >
+                {initials(user.name)}
+              </span>
+              <span className="hidden max-w-40 truncate text-sm font-medium xl:inline">
+                {user.name}
+              </span>
+            </div>
           </div>
         </header>
 
@@ -154,10 +191,10 @@ function SidebarPanel({
   closeRef?: RefObject<HTMLButtonElement | null>;
 }) {
   return (
-    <div className="flex h-full w-full flex-col bg-sidebar pt-[env(safe-area-inset-top)] text-sidebar-foreground">
-      <div className="flex items-center gap-3 px-4 py-4">
+    <div className="app-sidebar flex h-full w-full flex-col pt-[env(safe-area-inset-top)]">
+      <div className="flex items-center gap-3 px-3.5 pt-4 pb-1">
         <span
-          className="grid size-9 shrink-0 place-items-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground"
+          className="grid size-10 shrink-0 place-items-center rounded-xl bg-primary text-primary-foreground shadow-sm"
           aria-hidden
         >
           <svg viewBox="0 0 24 24" className="size-5">
@@ -166,7 +203,9 @@ function SidebarPanel({
         </span>
         <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-semibold tracking-tight">Hospital</p>
-          <p className="truncate text-xs text-muted-foreground">Operations</p>
+          <p className="truncate text-[11px] font-medium tracking-widest text-muted-foreground uppercase">
+            Operations
+          </p>
         </div>
         {closeRef ? (
           <Button
@@ -183,49 +222,106 @@ function SidebarPanel({
         ) : null}
       </div>
 
-      <nav className="flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto px-3" aria-label="Main">
-        {links.map((item) => {
-          const current = isCurrent(pathname, item.href);
-          const Icon = item.icon;
-          return (
-            <Button
-              key={item.href}
-              nativeButton={false}
-              variant={current ? "default" : "ghost"}
-              className="h-11 w-full justify-start px-3"
-              aria-current={current ? "page" : undefined}
-              render={<Link href={item.href} onClick={onNavigate} />}
-            >
-              <Icon className="size-5 shrink-0" aria-hidden />
-              {item.label}
-            </Button>
-          );
-        })}
+      <nav
+        className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto px-3 py-4"
+        aria-label="Main"
+      >
+        {groupNav(links).map((group) => (
+          <div key={group.label} className="flex flex-col gap-1">
+            <p className="px-2 pb-1 text-[10px] font-semibold tracking-widest text-muted-foreground uppercase">
+              {group.label}
+            </p>
+            {group.items.map((item) => {
+              const current = isCurrent(pathname, item.href);
+              const Icon = item.icon;
+              return (
+                <Button
+                  key={item.href}
+                  nativeButton={false}
+                  variant="ghost"
+                  className={cn(
+                    "h-11 w-full justify-start gap-2.5 rounded-lg px-1.5 font-medium",
+                    current
+                      ? "bg-card font-semibold text-foreground shadow-sm ring-1 ring-foreground/10 hover:bg-card hover:text-foreground"
+                      : "text-muted-foreground hover:bg-foreground/5 hover:text-foreground",
+                  )}
+                  aria-current={current ? "page" : undefined}
+                  render={<Link href={item.href} onClick={onNavigate} />}
+                >
+                  <span
+                    className={cn(
+                      "grid size-7 shrink-0 place-items-center rounded-md",
+                      current
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-foreground/5 text-muted-foreground",
+                    )}
+                    aria-hidden
+                  >
+                    <Icon className="size-4" />
+                  </span>
+                  <span className="min-w-0 truncate">{item.label}</span>
+                </Button>
+              );
+            })}
+          </div>
+        ))}
       </nav>
 
-      <div className="shrink-0 border-t border-sidebar-border p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
-        <div className="flex items-center gap-3 px-1 py-2">
-          <span
-            className="grid size-10 shrink-0 place-items-center rounded-full bg-sidebar-accent text-sm font-semibold"
-            aria-hidden
-          >
-            {initials(user.name)}
-          </span>
-          <div className="min-w-0">
-            <p className="truncate text-sm font-medium">{user.name}</p>
-            <p className="truncate text-xs text-muted-foreground">{roleLabel(user.role)}</p>
-          </div>
+      <div className="shrink-0 px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+        <div className="rounded-xl bg-card p-3 shadow-sm ring-1 ring-foreground/10">
+          <p className="text-[10px] font-semibold tracking-widest text-muted-foreground uppercase">
+            Today
+          </p>
+          <dl className="mt-2.5 flex flex-col gap-1.5">
+            {sidebarToday.map((row) => (
+              <div key={row.label} className="flex items-baseline justify-between gap-3">
+                <dt className="min-w-0 truncate text-xs text-muted-foreground">{row.label}</dt>
+                <dd className="shrink-0 text-xs font-semibold tabular-nums">{row.value}</dd>
+              </div>
+            ))}
+          </dl>
         </div>
-        <form action={logout} className="mt-1">
-          <Button type="submit" variant="ghost" className="h-11 w-full justify-start px-3">
-            <IconLogout className="size-5 shrink-0" aria-hidden />
-            Sign out
-          </Button>
-        </form>
+
+        <div className="mt-2 rounded-xl bg-card p-2 shadow-sm ring-1 ring-foreground/10">
+          <div className="flex items-center gap-2.5 px-1.5 py-1">
+            <span
+              className="grid size-9 shrink-0 place-items-center rounded-full bg-primary text-xs font-semibold text-primary-foreground"
+              aria-hidden
+            >
+              {initials(user.name)}
+            </span>
+            <div className="min-w-0">
+              <p className="truncate text-sm font-semibold">{user.name}</p>
+              <p className="truncate text-xs text-muted-foreground">{roleLabel(user.role)}</p>
+            </div>
+          </div>
+          <form action={logout} className="mt-1">
+            <Button
+              type="submit"
+              variant="ghost"
+              className="h-11 w-full justify-start px-2.5 text-muted-foreground hover:text-foreground"
+            >
+              <IconLogout className="size-4 shrink-0" aria-hidden />
+              Sign out
+            </Button>
+          </form>
+        </div>
       </div>
     </div>
   );
 }
+
+const sidebarRupees = new Intl.NumberFormat("en-IN", {
+  style: "currency",
+  currency: "INR",
+  maximumFractionDigits: 0,
+});
+
+const sidebarToday = [
+  { label: "OPD", value: String(opdToday) },
+  { label: "Beds free", value: String(freeBeds) },
+  { label: "Collected", value: sidebarRupees.format(dashboardCollection.today) },
+];
 
 function initials(name: string) {
   const parts = name.trim().split(/\s+/).filter(Boolean);

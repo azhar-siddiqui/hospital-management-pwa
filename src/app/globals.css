@@ -146,3 +146,12 @@
     display: none !important;
   }
 }
+
+.app-sidebar {
+  background-color: oklch(0.955 0.016 255);
+  color: var(--sidebar-foreground);
+}
+
+.dark .app-sidebar {
+  background-color: oklch(0.22 0.034 255);
+}
