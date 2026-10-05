@@ -1,8 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
 generator client {
   provider = "prisma-client"
   output   = "../src/generated/prisma"
@@ -12,7 +7,6 @@ datasource db {
   provider = "postgresql"
 }
 
-// --- ENUMS ---
 enum Role {
   ADMIN
   RECEPTIONIST
@@ -21,166 +15,13 @@ enum Role {
   ASSISTANT
 }
 
-enum VisitType {
-  OPD
-  IPD
-}
-
-enum WardType {
-  DAY_CARE
-  GENERAL
-  ICU
-  SEMI_ICU
-}
-
-enum BedStatus {
-  AVAILABLE
-  OCCUPIED
-  MAINTENANCE
-}
-
-enum VisitStatus {
-  ACTIVE
-  DISCHARGED
-}
-
-// --- MODELS ---
-
 model User {
-  id        String   @id @default(uuid())
-  name      String
-  email     String   @unique
-  password    String // Hashed password
+  id          String   @id @default(uuid())
+  name        String
+  email       String   @unique
+  password    String
   role        Role     @default(RECEPTIONIST)
   permissions String[] @default([])
   createdAt   DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Relations
-  expensesLogged Expense[]
-}
-
-model Doctor {
-  id        String   @id @default(uuid())
-  name      String
-  specialty String?
-  phone     String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  visits          Visit[] @relation("ReferringDoctor")
-  consultedVisits Visit[] @relation("ConsultationDoctor")
-
-  @@index([name])
-}
-
-model Patient {
-  id        String   @id @default(uuid())
-  name      String
-  phone     String?
-  age       Int?
-  gender    String?
-  address   String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Relations
-  visits Visit[]
-
-  @@index([phone])
-  @@index([name])
-}
-
-model Visit {
-  id                   String      @id @default(uuid())
-  patientId            String
-  visitType            VisitType
-  referringDoctor      String? // Name at the time of the visit, kept for receipts
-  referringDoctorId    String?
-  consultationDoctor   String? // Consulting doctor name at the time of the visit, kept for receipts
-  consultationDoctorId String?
-  consultationFee      Float       @default(0.0)
-  admissionDate        DateTime    @default(now())
-  dischargeDate        DateTime?
-  status               VisitStatus @default(ACTIVE)
-  clinicalNote         String?
-
-  // Relations
-  patient        Patient         @relation(fields: [patientId], references: [id])
-  doctor         Doctor?         @relation("ReferringDoctor", fields: [referringDoctorId], references: [id], onDelete: SetNull)
-  consultant     Doctor?         @relation("ConsultationDoctor", fields: [consultationDoctorId], references: [id], onDelete: SetNull)
-  bed            Bed?            @relation(fields: [bedId], references: [id])
-  bedId          String?         @unique // A visit occupies exactly one bed at a time
-  serviceCharges ServiceCharge[]
-
-  @@index([patientId])
-  @@index([status, visitType])
-  @@index([admissionDate])
-  @@index([referringDoctorId])
-  @@index([consultationDoctorId])
-}
-
-model Bed {
-  id        String    @id @default(uuid())
-  bedNumber String    @unique
-  wardType  WardType
-  status    BedStatus @default(AVAILABLE)
-
-  // Relations
-  currentVisit Visit?
-
-  @@index([wardType, status])
-}
-
-model ServiceCharge {
-  id          String   @id @default(uuid())
-  visitId     String
-  serviceName String // e.g., "ECG", "Oxygen (Per Hour)", "Blood Test"
-  quantity    Int      @default(1)
-  unitPrice   Float
-  total       Float // quantity * unitPrice
-  createdAt   DateTime @default(now())
-
-  // Relations
-  visit Visit @relation(fields: [visitId], references: [id], onDelete: Cascade)
-
-  @@index([visitId])
-}
-
-model Inventory {
-  id          String   @id @default(uuid())
-  itemName    String   @unique
-  category    String? // e.g., "Medicine", "Equipment", "Supplies"
-  quantity    Int      @default(0)
-  unit        String // e.g., "Boxes", "Liters", "Pieces"
-  lastUpdated DateTime @updatedAt
-}
-
-model Expense {
-  id          String   @id @default(uuid())
-  description String
-  amount      Float
-  expenseDate DateTime @default(now())
-  loggedById  String
-
-  // Relations
-  loggedBy User @relation(fields: [loggedById], references: [id])
-
-  @@index([expenseDate])
-  @@index([loggedById])
-}
-
-model AuditLog {
-  id          String   @id @default(uuid())
-  actorId     String
-  actorName   String
-  subjectType String
-  subjectId   String
-  subjectName String
-  summary     String
-  changes     Json
-  createdAt   DateTime @default(now())
-
-  @@index([createdAt])
-  @@index([subjectType, subjectId])
+  updatedAt   DateTime @updatedAt
 }
