@@ -65,7 +65,7 @@ export function DoctorCombobox({
         />
         <ComboboxContent>
           <ComboboxEmpty>
-            {doctors.length === 0 ? "Add doctors on the Doctors page." : "No matching doctors."}
+            {doctors.length === 0 ? "Add a doctor from the Doctors page." : "No matching doctors."}
           </ComboboxEmpty>
           <ComboboxList>
             {(item: DoctorChoice) => (

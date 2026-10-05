@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import type { ActionState } from "@/lib/action-state";
 import { requireUser } from "@/lib/auth";
 import { createDoctor, parseDoctor } from "@/lib/doctors";
@@ -17,5 +18,5 @@ export async function createDoctorAction(
   revalidatePath("/doctors");
   revalidatePath("/patients");
   revalidatePath("/patients/[id]", "page");
-  return { ok: true, message: "Doctor added." };
+  redirect("/doctors");
 }
