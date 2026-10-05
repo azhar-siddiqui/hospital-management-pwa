@@ -35,7 +35,7 @@ export default async function VisitPage({ params, searchParams }: PageProps<"/vi
   );
   const billTotal = roundMoney(visit.consultationFee + chargesTotal);
   const beds =
-    active && visit.visitType === "IPD" && !visit.bed && can(user.role, "beds:manage")
+    active && visit.visitType === "IPD" && !visit.bed && can(user, "beds:manage")
       ? await listAvailableBeds()
       : [];
   const parsed = await chargeSearch.parse(searchParams);
@@ -100,7 +100,7 @@ export default async function VisitPage({ params, searchParams }: PageProps<"/vi
           <CardTitle>Note</CardTitle>
         </CardHeader>
         <CardContent>
-          {active && can(user.role, "visits:note") ? (
+          {active && can(user, "visits:note") ? (
             <ClinicalNoteForm visitId={visit.id} note={visit.clinicalNote ?? ""} />
           ) : (
             <p className="whitespace-pre-wrap text-sm">
@@ -128,7 +128,7 @@ export default async function VisitPage({ params, searchParams }: PageProps<"/vi
               filterMode={filterMode}
             />
           </Suspense>
-          {active && can(user.role, "visits:charge") ? (
+          {active && can(user, "visits:charge") ? (
             <>
               <Separator />
               <ChargeForm visitId={visit.id} />
@@ -138,7 +138,7 @@ export default async function VisitPage({ params, searchParams }: PageProps<"/vi
       </Card>
 
       {beds.length > 0 ||
-      (active && visit.visitType === "IPD" && !visit.bed && can(user.role, "beds:manage")) ? (
+      (active && visit.visitType === "IPD" && !visit.bed && can(user, "beds:manage")) ? (
         <Card>
           <CardHeader>
             <CardTitle>Bed</CardTitle>
@@ -156,7 +156,7 @@ export default async function VisitPage({ params, searchParams }: PageProps<"/vi
         </Card>
       ) : null}
 
-      {active && can(user.role, "visits:discharge") ? (
+      {active && can(user, "visits:discharge") ? (
         <Card>
           <CardHeader>
             <CardTitle>Discharge</CardTitle>

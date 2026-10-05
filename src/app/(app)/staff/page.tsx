@@ -11,7 +11,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 
 export default async function StaffPage({ searchParams }: PageProps<"/staff">) {
-  await requireAdmin();
+  const user = await requireAdmin();
   const parsed = await staffSearch.parse(searchParams);
   const { dataMode, filterMode } = readTableMode(parsed);
   const { rows, total, pageCount, capped } = await queryStaff(
@@ -42,7 +42,13 @@ export default async function StaffPage({ searchParams }: PageProps<"/staff">) {
 
       <Suspense fallback={<DataTableSkeleton columnCount={6} filterCount={4} />}>
         <TableControlMenu />
-        <StaffTable data={rows} pageCount={pageCount} dataMode={dataMode} filterMode={filterMode} />
+        <StaffTable
+          data={rows}
+          pageCount={pageCount}
+          dataMode={dataMode}
+          filterMode={filterMode}
+          canEdit={user.role === "ADMIN"}
+        />
       </Suspense>
     </main>
   );

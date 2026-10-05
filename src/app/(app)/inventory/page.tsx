@@ -21,7 +21,7 @@ export default async function InventoryPage({ searchParams }: PageProps<"/invent
   const user = await requirePermission("inventory:view");
   const parsed = await inventorySearch.parse(searchParams);
   const { dataMode, filterMode } = readTableMode(parsed);
-  const manage = can(user.role, "inventory:manage");
+  const manage = can(user, "inventory:manage");
   const { rows, total, pageCount, capped } = await queryStock(
     readDataTableQuery(parsed, stockFilters, stockQueryKeys),
     dataMode,

@@ -23,8 +23,8 @@ export default async function PatientsPage({ searchParams }: PageProps<"/patient
   const query = readDataTableQuery(parsed, patientFilters);
   const { rows, total, pageCount, capped } = await queryPatients(query, dataMode);
   const canAdd =
-    can(user.role, "patients:register") &&
-    (can(user.role, "visits:opd") || can(user.role, "visits:admit"));
+    can(user, "patients:register") &&
+    (can(user, "visits:opd") || can(user, "visits:admit"));
 
   return (
     <main className="flex min-w-0 flex-col gap-8">

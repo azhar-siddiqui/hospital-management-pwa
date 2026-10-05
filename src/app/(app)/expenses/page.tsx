@@ -36,7 +36,7 @@ export default async function ExpensesPage({ searchParams }: PageProps<"/expense
           </p>
           <RecordCount total={total} capped={capped} />
         </div>
-        {can(user.role, "expenses:create") ? (
+        {can(user, "expenses:create") ? (
           <Button
             nativeButton={false}
             className="w-full sm:w-auto"

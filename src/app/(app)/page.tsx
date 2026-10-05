@@ -41,8 +41,8 @@ import type { ComponentType } from "react";
 
 export default async function DashboardPage() {
   const user = await requireUser();
-  const data = await getDashboard(user.role);
-  const showPatients = can(user.role, "patients:view");
+  const data = await getDashboard(user);
+  const showPatients = can(user, "patients:view");
   const hour = hospitalHour();
   const firstName = user.name.trim().split(/\s+/)[0] || user.name;
   const bedTotal = data.beds.available + data.beds.occupied + data.beds.maintenance;
@@ -53,11 +53,11 @@ export default async function DashboardPage() {
     icon: ComponentType<{ className?: string }>;
   }> = [{ href: "/beds", label: "Beds", icon: IconBed }];
   if (showPatients) actions.unshift({ href: "/patients", label: "Patients", icon: IconUsers });
-  if (can(user.role, "inventory:view"))
+  if (can(user, "inventory:view"))
     actions.push({ href: "/inventory", label: "Inventory", icon: IconPackage });
-  if (can(user.role, "expenses:view"))
+  if (can(user, "expenses:view"))
     actions.push({ href: "/expenses", label: "Expenses", icon: IconReceipt });
-  if (can(user.role, "staff:manage"))
+  if (can(user, "staff:manage"))
     actions.push({ href: "/staff", label: "Staff", icon: IconUserCog });
 
   return (

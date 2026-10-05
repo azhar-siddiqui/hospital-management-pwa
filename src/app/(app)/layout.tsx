@@ -4,5 +4,9 @@ import { requireUser } from "@/lib/auth";
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const user = await requireUser();
 
-  return <AppShell user={{ name: user.name, role: user.role }}>{children}</AppShell>;
+  return (
+    <AppShell user={{ name: user.name, role: user.role, permissions: user.permissions }}>
+      {children}
+    </AppShell>
+  );
 }

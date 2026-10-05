@@ -50,9 +50,10 @@ model User {
   id        String   @id @default(uuid())
   name      String
   email     String   @unique
-  password  String // Hashed password
-  role      Role     @default(RECEPTIONIST)
-  createdAt DateTime @default(now())
+  password    String // Hashed password
+  role        Role     @default(RECEPTIONIST)
+  permissions String[] @default([])
+  createdAt   DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   // Relations

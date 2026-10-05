@@ -9,7 +9,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useId, useRef, useState, type KeyboardEvent, type RefObject } from "react";
 
-type ShellUser = { name: string; role: string };
+type ShellUser = { name: string; role: string; permissions: string[] };
 
 export function AppShell({ user, children }: { user: ShellUser; children: React.ReactNode }) {
   const pathname = usePathname();
@@ -43,7 +43,7 @@ export function AppShell({ user, children }: { user: ShellUser; children: React.
     setMenuPath(null);
   }
 
-  const links = linksForRole(user.role);
+  const links = linksForRole(user);
   const tabs = links.filter((item) => item.tab !== false);
 
   return (

@@ -8,7 +8,7 @@ import {
   IconUsers,
   type Icon,
 } from "@tabler/icons-react";
-import { can, type Permission } from "@/lib/permissions";
+import { can, type AccessSubject, type Permission } from "@/lib/permissions";
 
 export type NavItem = {
   href: string;
@@ -74,12 +74,13 @@ export function isCurrent(pathname: string, href: string) {
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
-export function linksForRole(role: string) {
-  return NAV_ITEMS.filter((item) => item.permission === null || can(role, item.permission));
+export function linksForRole(subject: string | AccessSubject) {
+  return NAV_ITEMS.filter((item) => item.permission === null || can(subject, item.permission));
 }
 
 export function sectionTitle(pathname: string) {
   if (pathname.startsWith("/visits/") && pathname.endsWith("/receipt")) return "Receipt";
   if (pathname.startsWith("/visits/")) return "Visit";
+  if (pathname.startsWith("/staff/") && pathname !== "/staff/new") return "Access";
   return NAV_ITEMS.find((item) => isCurrent(pathname, item.href))?.label ?? "Hospital";
 }

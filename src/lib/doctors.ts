@@ -42,10 +42,10 @@ export function parseDoctor(formData: FormData) {
 }
 
 export async function createDoctor(
-  role: string,
+  actor: { role: string; permissions?: readonly string[] | null },
   input: { name: string; specialty: string | null; phone: string | null },
 ) {
-  if (!can(role, "doctors:manage")) {
+  if (!can(actor, "doctors:manage")) {
     return { ok: false as const, message: "You do not have access to do that." };
   }
   const doctor = await prisma.doctor.create({

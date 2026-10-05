@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { prisma } from "@/lib/prisma";
 import { can, permissionForPath } from "@/lib/permissions";
 import { SESSION_COOKIE, verifySessionToken } from "@/lib/session";
 
@@ -33,8 +34,14 @@ export async function proxy(request: NextRequest) {
   }
 
   const permission = permissionForPath(pathname);
-  if (permission && !can(session.role, permission)) {
-    return NextResponse.redirect(new URL("/", request.url));
+  if (permission) {
+    const user = await prisma.user.findUnique({
+      where: { id: session.sub },
+      select: { role: true, permissions: true },
+    });
+    if (!user || !can(user, permission)) {
+      return NextResponse.redirect(new URL("/", request.url));
+    }
   }
 
   return NextResponse.next();

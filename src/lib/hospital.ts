@@ -31,12 +31,12 @@ export class OperationError extends Error {
   }
 }
 
-type Actor = { id: string; role: string };
+type Actor = { id: string; role: string; permissions: string[] };
 
 type Failure = { ok: false; message: string };
 
-function deny(role: string, permission: Parameters<typeof can>[1]): Failure | null {
-  if (!can(role, permission)) {
+function deny(actor: Actor, permission: Parameters<typeof can>[1]): Failure | null {
+  if (!can(actor, permission)) {
     return { ok: false, message: "You do not have access to do that." };
   }
   return null;
@@ -146,7 +146,7 @@ export async function registerPatient(
   },
 ) {
   const denied =
-    deny(actor.role, "patients:register") ?? deny(actor.role, permissionForVisit(input.visitType));
+    deny(actor, "patients:register") ?? deny(actor, permissionForVisit(input.visitType));
   if (denied) return denied;
   const doctor = await doctorSnapshot(input.referringDoctorId, "referring doctor");
   if (!doctor.ok) return doctor;
@@ -217,7 +217,7 @@ export async function startVisit(
     consultationFee: number;
   },
 ) {
-  const denied = deny(actor.role, permissionForVisit(input.visitType));
+  const denied = deny(actor, permissionForVisit(input.visitType));
   if (denied) return denied;
   if (!isUuid(patientId)) return { ok: false as const, message: "Patient not found." };
   const doctor = await doctorSnapshot(input.referringDoctorId, "referring doctor");
@@ -295,7 +295,7 @@ export async function getVisit(id: string) {
 }
 
 export async function saveClinicalNote(actor: Actor, visitId: string, note: string) {
-  const denied = deny(actor.role, "visits:note");
+  const denied = deny(actor, "visits:note");
   if (denied) return denied;
   if (!isUuid(visitId)) return { ok: false as const, message: "Visit not found." };
   const noteError = note ? boundedText(note, "Note", 1, 4000) : null;
@@ -319,7 +319,7 @@ export async function addServiceCharge(
     unitPrice: number;
   },
 ) {
-  const denied = deny(actor.role, "visits:charge");
+  const denied = deny(actor, "visits:charge");
   if (denied) return denied;
   if (!isUuid(visitId)) return { ok: false as const, message: "Visit not found." };
   const total = roundMoney(input.quantity * input.unitPrice);
@@ -375,7 +375,7 @@ export function parseNote(formData: FormData) {
 }
 
 export async function dischargeVisit(actor: Actor, visitId: string) {
-  const denied = deny(actor.role, "visits:discharge");
+  const denied = deny(actor, "visits:discharge");
   if (denied) return denied;
   if (!isUuid(visitId)) return { ok: false as const, message: "Visit not found." };
 
@@ -433,7 +433,7 @@ export async function listAvailableBeds() {
 }
 
 export async function createBed(actor: Actor, bedNumber: string, wardType: WardTypeName) {
-  const denied = deny(actor.role, "beds:manage");
+  const denied = deny(actor, "beds:manage");
   if (denied) return denied;
   try {
     await prisma.bed.create({ data: { bedNumber, wardType, status: "AVAILABLE" } });
@@ -464,7 +464,7 @@ export async function setBedAvailability(
   bedId: string,
   status: "AVAILABLE" | "MAINTENANCE",
 ) {
-  const denied = deny(actor.role, "beds:manage");
+  const denied = deny(actor, "beds:manage");
   if (denied) return denied;
   if (!isUuid(bedId)) return { ok: false as const, message: "Bed not found." };
   const from = status === "MAINTENANCE" ? "AVAILABLE" : "MAINTENANCE";
@@ -482,7 +482,7 @@ export async function setBedAvailability(
 }
 
 export async function assignBed(actor: Actor, visitId: string, bedId: string) {
-  const denied = deny(actor.role, "beds:manage");
+  const denied = deny(actor, "beds:manage");
   if (denied) return denied;
   if (!isUuid(visitId) || !isUuid(bedId)) {
     return { ok: false as const, message: "Choose a visit and an available bed." };
@@ -525,7 +525,7 @@ export async function createInventoryItem(
     unit: string;
   },
 ) {
-  const denied = deny(actor.role, "inventory:manage");
+  const denied = deny(actor, "inventory:manage");
   if (denied) return denied;
   try {
     await prisma.inventory.create({ data: input });
@@ -556,7 +556,7 @@ export function parseInventoryItem(formData: FormData) {
 }
 
 export async function updateStock(actor: Actor, itemId: string, quantity: number) {
-  const denied = deny(actor.role, "inventory:manage");
+  const denied = deny(actor, "inventory:manage");
   if (denied) return denied;
   if (!isUuid(itemId)) return { ok: false as const, message: "Item not found." };
   const updated = await prisma.inventory.updateMany({
@@ -568,7 +568,7 @@ export async function updateStock(actor: Actor, itemId: string, quantity: number
 }
 
 export async function logExpense(actor: Actor, input: { description: string; amount: number }) {
-  const denied = deny(actor.role, "expenses:create");
+  const denied = deny(actor, "expenses:create");
   if (denied) return denied;
   await prisma.expense.create({
     data: { description: input.description, amount: input.amount, loggedById: actor.id },
@@ -587,8 +587,8 @@ export function parseExpense(formData: FormData) {
   return { ok: true as const, data: { description, amount: amount.amount } };
 }
 
-export async function getDashboard(role: string) {
-  const allow = can;
+export async function getDashboard(actor: { role: string; permissions: string[] }) {
+  const allow = (permission: Parameters<typeof can>[1]) => can(actor, permission);
   const start = startOfHospitalDay();
   const [activeOpd, activeIpd, available, occupied, maintenance, patientsToday, recent] =
     await Promise.all([
@@ -597,10 +597,10 @@ export async function getDashboard(role: string) {
       prisma.bed.count({ where: { status: "AVAILABLE" } }),
       prisma.bed.count({ where: { status: "OCCUPIED" } }),
       prisma.bed.count({ where: { status: "MAINTENANCE" } }),
-      allow(role, "patients:view")
+      allow("patients:view")
         ? prisma.patient.count({ where: { createdAt: { gte: start } } })
         : Promise.resolve(0),
-      allow(role, "patients:view")
+      allow("patients:view")
         ? prisma.visit.findMany({
             orderBy: { admissionDate: "desc" },
             take: 8,
@@ -617,25 +617,25 @@ export async function getDashboard(role: string) {
     ]);
 
   const [fees, charges, expenses, lowStock] = await Promise.all([
-    allow(role, "reports:fees")
+    allow("reports:fees")
       ? prisma.visit.aggregate({
           where: { admissionDate: { gte: start } },
           _sum: { consultationFee: true },
         })
       : Promise.resolve(null),
-    allow(role, "reports:charges")
+    allow("reports:charges")
       ? prisma.serviceCharge.aggregate({
           where: { createdAt: { gte: start } },
           _sum: { total: true },
         })
       : Promise.resolve(null),
-    allow(role, "reports:expenses")
+    allow("reports:expenses")
       ? prisma.expense.aggregate({
           where: { expenseDate: { gte: start } },
           _sum: { amount: true },
         })
       : Promise.resolve(null),
-    allow(role, "inventory:view")
+    allow("inventory:view")
       ? prisma.inventory.findMany({
           where: { quantity: { lte: LOW_STOCK_AT } },
           orderBy: { quantity: "asc" },

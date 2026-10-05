@@ -17,7 +17,7 @@ export async function getCurrentUser() {
 
   return prisma.user.findUnique({
     where: { id: session.sub },
-    select: { id: true, name: true, email: true, role: true },
+    select: { id: true, name: true, email: true, role: true, permissions: true },
   });
 }
 
@@ -31,7 +31,7 @@ export async function requireUser() {
 
 export async function requirePermission(permission: Permission) {
   const user = await requireUser();
-  if (!can(user.role, permission)) {
+  if (!can(user, permission)) {
     redirect("/");
   }
   return user;

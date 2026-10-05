@@ -13,7 +13,7 @@ export async function createDoctorAction(
   const actor = await requireUser();
   const parsed = parseDoctor(formData);
   if (!parsed.ok) return { ok: false, errors: parsed.errors };
-  const result = await createDoctor(actor.role, parsed.data);
+  const result = await createDoctor(actor, parsed.data);
   if (!result.ok) return { ok: false, message: result.message };
   revalidatePath("/doctors");
   revalidatePath("/patients");

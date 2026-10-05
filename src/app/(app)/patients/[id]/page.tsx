@@ -23,7 +23,7 @@ export default async function PatientPage({ params, searchParams }: PageProps<"/
   if (!patient) notFound();
 
   const visitTypes = (["OPD", "IPD"] as const).filter((type) =>
-    can(user.role, type === "OPD" ? "visits:opd" : "visits:admit"),
+    can(user, type === "OPD" ? "visits:opd" : "visits:admit"),
   ) as VisitTypeName[];
   const doctors = visitTypes.length > 0 ? await doctorChoices() : [];
   const active = new Set(

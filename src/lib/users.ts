@@ -1,7 +1,9 @@
 import { Prisma } from "@/generated/prisma/client";
 import { hashPassword, verifyPassword } from "@/lib/password";
+import { PERMISSIONS, roleGrants, type Permission } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
 import { isStaffRole, type StaffRole } from "@/lib/roles";
+import { isUuid } from "@/lib/validation";
 
 export type FieldErrors = {
   name?: string;
@@ -83,6 +85,7 @@ export async function createStaffUser(input: {
         email: input.email,
         password: await hashPassword(input.password),
         role: input.role,
+        permissions: roleGrants(input.role),
       },
       select: { id: true, name: true, email: true, role: true },
     });
@@ -96,6 +99,36 @@ export async function createStaffUser(input: {
     }
     throw error;
   }
+}
+
+export function readPermissionSelection(values: FormDataEntryValue[]) {
+  const allowed = new Set<string>(PERMISSIONS);
+  const selected = new Set<Permission>();
+  for (const value of values) {
+    if (typeof value === "string" && allowed.has(value)) selected.add(value as Permission);
+  }
+  return [...selected];
+}
+
+export async function setStaffPermissions(
+  actor: { role: string },
+  userId: string,
+  permissions: Permission[],
+) {
+  if (actor.role !== "ADMIN") {
+    return { ok: false as const, message: "Only an admin can change permissions." };
+  }
+  if (!isUuid(userId)) return { ok: false as const, message: "Staff member not found." };
+  const target = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { id: true, role: true },
+  });
+  if (!target) return { ok: false as const, message: "Staff member not found." };
+  if (target.role === "ADMIN") {
+    return { ok: false as const, message: "The admin account keeps every permission." };
+  }
+  await prisma.user.update({ where: { id: target.id }, data: { permissions } });
+  return { ok: true as const };
 }
 
 export function isSeededAdmin(email: string) {

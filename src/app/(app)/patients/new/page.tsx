@@ -11,7 +11,7 @@ import { IconChevronLeft } from "@tabler/icons-react";
 export default async function NewPatientPage() {
   const user = await requirePermission("patients:register");
   const visitTypes = (["OPD", "IPD"] as const).filter((type) =>
-    can(user.role, type === "OPD" ? "visits:opd" : "visits:admit"),
+    can(user, type === "OPD" ? "visits:opd" : "visits:admit"),
   ) as VisitTypeName[];
   const doctors = visitTypes.length > 0 ? await doctorChoices() : [];
 

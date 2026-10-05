@@ -20,7 +20,7 @@ import { IconPlus } from "@tabler/icons-react";
 export default async function BedsPage() {
   const user = await requirePermission("beds:view");
   const beds = await listBeds();
-  const manage = can(user.role, "beds:manage");
+  const manage = can(user, "beds:manage");
 
   return (
     <main className="flex min-w-0 flex-col gap-8">

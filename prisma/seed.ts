@@ -2,6 +2,7 @@ import "dotenv/config";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient, Role } from "../src/generated/prisma/client";
 import { hashPassword } from "../src/lib/password";
+import { roleGrants } from "../src/lib/permissions";
 
 async function main() {
   const connectionString = process.env.DATABASE_URL;
@@ -27,12 +28,14 @@ async function main() {
         name,
         password: passwordHash,
         role: Role.ADMIN,
+        permissions: roleGrants("ADMIN"),
       },
       create: {
         name,
         email,
         password: passwordHash,
         role: Role.ADMIN,
+        permissions: roleGrants("ADMIN"),
       },
       select: { id: true, email: true, role: true },
     });

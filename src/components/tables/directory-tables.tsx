@@ -317,11 +317,13 @@ export function StaffTable({
   pageCount,
   dataMode,
   filterMode,
+  canEdit = false,
 }: {
   data: StaffTableRow[];
   pageCount: number;
   dataMode: DataMode;
   filterMode: FilterMode;
+  canEdit?: boolean;
 }) {
   const columns = React.useMemo<ColumnDef<DataTableFeatures, StaffTableRow>[]>(() => {
     const header = headers<StaffTableRow>();
@@ -384,8 +386,30 @@ export function StaffTable({
         enableColumnFilter: true,
         size: 180,
       },
+      ...(canEdit
+        ? [
+            {
+              id: "access",
+              header: "Access",
+              cell: ({ row }) =>
+                row.original.role === "ADMIN" ? (
+                  <span className="text-muted-foreground">Full access</span>
+                ) : (
+                  <Link
+                    href={`/staff/${row.original.id}`}
+                    className="font-medium text-primary hover:underline"
+                  >
+                    Permissions
+                  </Link>
+                ),
+              enableSorting: false,
+              enableHiding: false,
+              size: 140,
+            } satisfies ColumnDef<DataTableFeatures, StaffTableRow>,
+          ]
+        : []),
     ];
-  }, []);
+  }, [canEdit]);
 
   return (
     <RecordTable
