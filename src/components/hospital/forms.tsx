@@ -15,7 +15,9 @@ import {
 } from "@/app/actions/hospital";
 import { DoctorCombobox, type DoctorChoice } from "@/components/doctors/doctor-combobox";
 import { Field, FormMessage, SelectField } from "@/components/field";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   FieldDescription,
@@ -33,6 +35,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { idleState } from "@/lib/action-state";
+import Link from "next/link";
 import {
   GENDERS,
   ITEM_CATEGORIES,
@@ -40,13 +43,23 @@ import {
   WARD_TYPES,
   type VisitTypeName,
 } from "@/lib/validation";
-import { useActionState, useEffect, useRef, useState } from "react";
+import { IconBed, IconCheck, IconStethoscope, IconUser, IconWalk } from "@tabler/icons-react";
+import { useActionState, useEffect, useRef, useState, type ComponentType } from "react";
+import { cn } from "cn";
 
 const CHARGE_PRESETS = [
   { name: "ECG", price: "500" },
   { name: "Oxygen (Per Hour)", price: "200" },
   { name: "Blood Test", price: "300" },
 ];
+
+const VISIT_CHOICES: Record<
+  VisitTypeName,
+  { title: string; detail: string; icon: ComponentType<{ className?: string }> }
+> = {
+  OPD: { title: "Outpatient", detail: "Same-day consultation", icon: IconWalk },
+  IPD: { title: "Inpatient", detail: "Admit and assign a bed", icon: IconBed },
+};
 
 export function RegisterPatientForm({
   visitTypes,
@@ -57,51 +70,104 @@ export function RegisterPatientForm({
 }) {
   const [state, action, pending] = useActionState(registerPatientAction, idleState);
   return (
-    <form action={action} className="grid gap-4 sm:grid-cols-2">
-      <Field label="Name" name="name" required autoComplete="name" error={state.errors?.name} />
-      <Field
-        label="Phone"
-        name="phone"
-        required
-        inputMode="tel"
-        autoComplete="tel"
-        error={state.errors?.phone}
-      />
-      <Field label="Age" name="age" inputMode="numeric" error={state.errors?.age} />
-      <SelectField
-        label="Gender"
-        name="gender"
-        placeholder="Not specified"
-        error={state.errors?.gender}
-        options={GENDERS.map((gender) => ({ value: gender, label: gender }))}
-      />
-      <Field
-        label="Address"
-        name="address"
-        error={state.errors?.address}
-        className="sm:col-span-2"
-      />
-      <DoctorCombobox doctors={doctors} error={state.errors?.referringDoctorId} />
-      <DoctorCombobox
-        doctors={doctors}
-        name="consultationDoctorId"
-        label="Consultation doctor"
-        error={state.errors?.consultationDoctorId}
-      />
-      <Field
-        label="Consultation fee (INR)"
-        name="consultationFee"
-        inputMode="decimal"
-        defaultValue="0"
-        error={state.errors?.consultationFee}
-      />
-      <VisitTypeField visitTypes={visitTypes} error={state.errors?.visitType} />
-      <div className="flex flex-col gap-2 sm:col-span-2 sm:flex-row sm:items-center sm:justify-between">
-        <FormMessage message={state.message} ok={state.ok} />
-        <Button type="submit" disabled={pending}>
-          {pending ? "Saving…" : "Register patient"}
-        </Button>
-      </div>
+    <form action={action} className="min-w-0">
+      <Card className="w-full">
+        <CardContent className="grid gap-0 sm:grid-cols-2">
+          <section
+            className="flex min-w-0 flex-col gap-4 pb-6 sm:pr-6 sm:pb-0"
+            aria-labelledby="patient-section"
+          >
+            <SectionHeading
+              id="patient-section"
+              icon={IconUser}
+              title="Patient"
+              description="Name and phone are required."
+            />
+            <div className="grid gap-4">
+              <Field
+                label="Name"
+                name="name"
+                required
+                autoComplete="name"
+                placeholder="Full name"
+                error={state.errors?.name}
+              />
+              <Field
+                label="Phone"
+                name="phone"
+                required
+                inputMode="tel"
+                autoComplete="tel"
+                placeholder="Mobile number"
+                error={state.errors?.phone}
+              />
+              <Field label="Age" name="age" inputMode="numeric" error={state.errors?.age} />
+              <SelectField
+                label="Gender"
+                name="gender"
+                placeholder="Not specified"
+                error={state.errors?.gender}
+                options={GENDERS.map((gender) => ({ value: gender, label: gender }))}
+              />
+              <Field
+                label="Address"
+                name="address"
+                placeholder="Street, area, city"
+                error={state.errors?.address}
+              />
+            </div>
+          </section>
+
+          <section
+            className="flex min-w-0 flex-col gap-4 border-t pt-6 sm:border-t-0 sm:border-l sm:pt-0 sm:pl-6"
+            aria-labelledby="visit-section"
+          >
+            <SectionHeading
+              id="visit-section"
+              icon={IconStethoscope}
+              title="First visit"
+              description="Saved with the patient. One active visit of each type."
+            />
+            <div className="grid gap-4">
+              <RegisterVisitType visitTypes={visitTypes} error={state.errors?.visitType} />
+              <DoctorCombobox doctors={doctors} error={state.errors?.referringDoctorId} />
+              <DoctorCombobox
+                doctors={doctors}
+                name="consultationDoctorId"
+                label="Consultation doctor"
+                error={state.errors?.consultationDoctorId}
+              />
+              <Field
+                label="Consultation fee (INR)"
+                name="consultationFee"
+                inputMode="decimal"
+                defaultValue="0"
+                hint="Use 0 if it is not collected now."
+                error={state.errors?.consultationFee}
+              />
+            </div>
+          </section>
+        </CardContent>
+        <CardFooter className="flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="min-w-0 sm:flex-1">
+            <FormMessage message={state.message} ok={state.ok} />
+          </div>
+          <div className="grid grid-cols-2 gap-2 sm:flex sm:justify-end">
+            <Button
+              nativeButton={false}
+              variant="outline"
+              size="lg"
+              className="w-full sm:w-auto"
+              render={<Link href="/patients" />}
+            >
+              Cancel
+            </Button>
+            <Button type="submit" size="lg" className="w-full sm:w-auto" disabled={pending}>
+              {pending ? "Saving…" : "Register patient"}
+            </Button>
+          </div>
+        </CardFooter>
+      </Card>
     </form>
   );
 }
@@ -141,6 +207,117 @@ export function StartVisitForm({
         </Button>
       </div>
     </form>
+  );
+}
+
+function SectionHeading({
+  id,
+  icon: Icon,
+  title,
+  description,
+}: {
+  id: string;
+  icon: ComponentType<{ className?: string }>;
+  title: string;
+  description: string;
+}) {
+  return (
+    <div className="flex items-center gap-3">
+      <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-primary/10 text-primary">
+        <Icon className="size-4" aria-hidden />
+      </span>
+      <div className="min-w-0">
+        <h2 id={id} className="text-sm font-medium">
+          {title}
+        </h2>
+        <p className="text-sm text-muted-foreground">{description}</p>
+      </div>
+    </div>
+  );
+}
+
+function RegisterVisitType({ visitTypes, error }: { visitTypes: VisitTypeName[]; error?: string }) {
+  const [value, setValue] = useState(visitTypes[0]);
+
+  useEffect(() => {
+    const form = document.getElementById("registerVisitType")?.closest("form");
+    if (!form) return;
+    const onReset = () => setValue(visitTypes[0]);
+    form.addEventListener("reset", onReset);
+    return () => form.removeEventListener("reset", onReset);
+  }, [visitTypes]);
+
+  return (
+    <FieldRoot data-invalid={error ? true : undefined}>
+      <input id="registerVisitType" type="hidden" name="visitType" value={value} />
+      <p id="visit-type-label" className="text-sm font-medium">
+        Visit type
+      </p>
+      <div
+        role="group"
+        aria-labelledby="visit-type-label"
+        className="grid gap-2"
+      >
+        {visitTypes.map((type) => {
+          const choice = VISIT_CHOICES[type];
+          const ChoiceIcon = choice.icon;
+          const selected = value === type;
+          const single = visitTypes.length === 1;
+          const className = cn(
+            "flex min-w-0 items-center gap-3 rounded-xl border px-3 py-3 text-left outline-none",
+            selected
+              ? "border-primary bg-primary/5"
+              : "border-border bg-background hover:bg-muted/70",
+            !single && "focus-visible:ring-3 focus-visible:ring-ring/50",
+          );
+          const body = (
+            <>
+              <span
+                className={cn(
+                  "grid size-9 shrink-0 place-items-center rounded-lg",
+                  selected
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-muted text-muted-foreground",
+                )}
+              >
+                <ChoiceIcon className="size-4" aria-hidden />
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="flex items-center gap-2">
+                  <span className="truncate text-sm font-medium">{choice.title}</span>
+                  <Badge variant={selected ? "default" : "secondary"}>{type}</Badge>
+                </span>
+                <span className="mt-0.5 block truncate text-xs text-muted-foreground">
+                  {choice.detail}
+                </span>
+              </span>
+              {selected && !single ? (
+                <IconCheck className="size-4 shrink-0 text-primary" aria-hidden />
+              ) : null}
+            </>
+          );
+          if (single) {
+            return (
+              <div key={type} className={className}>
+                {body}
+              </div>
+            );
+          }
+          return (
+            <button
+              key={type}
+              type="button"
+              aria-pressed={selected}
+              onClick={() => setValue(type)}
+              className={className}
+            >
+              {body}
+            </button>
+          );
+        })}
+      </div>
+      {error ? <FieldError>{error}</FieldError> : null}
+    </FieldRoot>
   );
 }
 
