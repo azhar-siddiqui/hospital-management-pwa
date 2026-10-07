@@ -1,4 +1,11 @@
-export const APP_ROLES = ["ADMIN", "RECEPTIONIST", "DOCTOR", "NURSE", "ASSISTANT"] as const;
+export const APP_ROLES = [
+  "SUPER_ADMIN",
+  "ADMIN",
+  "RECEPTIONIST",
+  "DOCTOR",
+  "NURSE",
+  "ASSISTANT",
+] as const;
 
 export const PERMISSIONS = ["staff:manage"] as const;
 

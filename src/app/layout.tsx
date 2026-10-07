@@ -1,7 +1,9 @@
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { THEME_COOKIE, themePreference } from "@/lib/chrome";
 import { cn } from "@/lib/utils";
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono, Inter } from "next/font/google";
+import { cookies } from "next/headers";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 import "./globals.css";
 
@@ -28,7 +30,9 @@ export const viewport: Viewport = {
   viewportFit: "cover",
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default async function RootLayout({ children }: LayoutProps<"/">) {
+  const theme = themePreference((await cookies()).get(THEME_COOKIE)?.value);
+
   return (
     <html
       lang="en"
@@ -39,6 +43,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         geistMono.variable,
         "font-sans",
         inter.variable,
+        theme === "dark" && "dark",
       )}
     >
       <body className="min-h-full flex flex-col">

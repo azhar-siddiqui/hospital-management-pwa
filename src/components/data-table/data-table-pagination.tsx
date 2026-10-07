@@ -100,7 +100,7 @@ function DataTablePaginationContent<TData extends RowData>({
             <SelectTrigger className="w-18">
               <SelectValue placeholder={pageSize} />
             </SelectTrigger>
-            <SelectContent side="top" alignItemWithTrigger={false}>
+            <SelectContent side="top" alignItemWithTrigger={false} className="min-w-18">
               <SelectGroup>
                 {pageSizeOptions.map((pageSize) => (
                   <SelectItem key={pageSize} value={`${pageSize}`}>

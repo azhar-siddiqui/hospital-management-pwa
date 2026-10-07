@@ -12,7 +12,6 @@ import { DataTableSliderFilter } from "@/components/data-table/data-table-slider
 import { DataTableViewOptions } from "@/components/data-table/data-table-view-options";
 import { IconPlaceholder } from "@/components/icon-placeholder";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -21,6 +20,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { IconSearch } from "@tabler/icons-react";
+import { InputGroup, InputGroupAddon, InputGroupInput } from "../ui/input-group";
 
 interface DataTableToolbarProps<TData extends RowData> extends React.ComponentProps<"div"> {
   table: Table<DataTableFeatures, TData>;
@@ -173,7 +174,7 @@ function DataTableBooleanFilter<TData extends RowData>({
           }}
         >
           <SelectTrigger className="w-36" aria-label={title}>
-            <SelectValue placeholder={title} />
+            <SelectValue placeholder={title} className="capitalize" />
           </SelectTrigger>
           <SelectContent alignItemWithTrigger={false}>
             <SelectGroup>
@@ -211,12 +212,17 @@ function DataTableFilterInput<TData extends RowData>({
   return (
     <Subscribe source={column.table.atoms.columnFilters} selector={() => column.getFilterValue()}>
       {(filterValue) => (
-        <Input
-          type={type}
-          {...props}
-          value={readFilterInputValue(filterValue)}
-          onChange={(event) => column.setFilterValue(event.target.value || undefined)}
-        />
+        <InputGroup className={cn("max-w-sm", props.className)}>
+          <InputGroupInput
+            type={type}
+            {...props}
+            value={readFilterInputValue(filterValue)}
+            onChange={(event) => column.setFilterValue(event.target.value || undefined)}
+          />
+          <InputGroupAddon>
+            <IconSearch />
+          </InputGroupAddon>
+        </InputGroup>
       )}
     </Subscribe>
   );
