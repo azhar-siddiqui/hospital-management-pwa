@@ -183,7 +183,6 @@ export function StaffTable({
           <StaffRowActions
             userId={row.original.id}
             name={row.original.name}
-            permissions={row.original.permissions}
             locked={
               row.original.role === "ADMIN" ||
               row.original.seeded ||

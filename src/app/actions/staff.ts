@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 
 import { requireAdmin } from "@/lib/auth";
 import { normalizePermissions } from "@/lib/permissions";
@@ -42,5 +43,6 @@ export async function updateStaffPermissions(
     data: { permissions },
   });
   revalidatePath("/staff");
-  return { ok: true, message: "Permissions saved." };
+  revalidatePath(`/staff/${user.id}`);
+  redirect("/staff");
 }
