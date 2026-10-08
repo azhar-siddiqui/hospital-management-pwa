@@ -11,10 +11,11 @@ import * as React from "react";
 import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header";
 import { getDataTableSelectColumn } from "@/components/data-table/data-table-select-column";
 import { RecordTable } from "@/components/data-table/record-table";
+import { StaffPermissionCell, StaffRowActions } from "@/components/tables/staff-permissions";
 import { Badge } from "@/components/ui/badge";
 import type { DataTableFeatures } from "@/lib/data-table-features";
 import { formatWhen } from "@/lib/format";
-import { APP_ROLES } from "@/lib/permissions";
+import { APP_ROLES, permissionLabel } from "@/lib/permissions";
 import type { StaffTableRow } from "@/lib/record-queries";
 import { roleLabel } from "@/lib/roles";
 import type { DataMode, FilterMode } from "@/lib/table-search";
@@ -84,11 +85,13 @@ export function StaffTable({
   pageCount,
   dataMode,
   filterMode,
+  currentUserId,
 }: {
   data: StaffTableRow[];
   pageCount: number;
   dataMode: DataMode;
   filterMode: FilterMode;
+  currentUserId: string;
 }) {
   const columns = React.useMemo<ColumnDef<DataTableFeatures, StaffTableRow>[]>(() => {
     const header = headers<StaffTableRow>();
@@ -125,6 +128,28 @@ export function StaffTable({
         size: 140,
       },
       {
+        id: "permissions",
+        accessorFn: (row) =>
+          row.role === "ADMIN" || row.seeded
+            ? "All"
+            : row.permissions.map((permission) => permissionLabel(permission)).join(", "),
+        header: header("Permissions"),
+        cell: ({ row }) => (
+          <StaffPermissionCell
+            permissions={row.original.permissions}
+            locked={
+              row.original.role === "ADMIN" ||
+              row.original.seeded ||
+              row.original.id === currentUserId
+            }
+          />
+        ),
+        meta: { label: "Permissions" },
+        enableSorting: false,
+        enableColumnFilter: false,
+        size: 260,
+      },
+      {
         id: "seeded",
         accessorKey: "seeded",
         header: header("Seeded"),
@@ -151,8 +176,29 @@ export function StaffTable({
         enableColumnFilter: true,
         size: 180,
       },
+      {
+        id: "actions",
+        header: header("Actions"),
+        cell: ({ row }) => (
+          <StaffRowActions
+            userId={row.original.id}
+            name={row.original.name}
+            permissions={row.original.permissions}
+            locked={
+              row.original.role === "ADMIN" ||
+              row.original.seeded ||
+              row.original.id === currentUserId
+            }
+          />
+        ),
+        meta: { label: "Actions" },
+        enableColumnFilter: false,
+        enableSorting: false,
+        enableHiding: false,
+        size: 96,
+      },
     ];
-  }, []);
+  }, [currentUserId]);
 
   return (
     <RecordTable

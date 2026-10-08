@@ -31,6 +31,13 @@ const staffColumns = [
     cellWidth: 61,
   },
   {
+    width: 260,
+    headerClassName: "h-8 -ml-1.5 rounded-lg",
+    headerWidth: 98,
+    cellClassName: "h-5 rounded-4xl",
+    cellWidth: 72,
+  },
+  {
     width: 120,
     headerClassName: "h-8 -ml-1.5 rounded-lg",
     headerWidth: 67,
@@ -43,6 +50,13 @@ const staffColumns = [
     headerWidth: 82,
     cellClassName: "h-5",
     cellWidth: 135,
+  },
+  {
+    width: 96,
+    headerClassName: "h-8 -ml-1.5 rounded-lg",
+    headerWidth: 67,
+    cellClassName: "size-7 rounded-lg",
+    pin: "end" as const,
   },
 ];
 

@@ -46,7 +46,7 @@ export function RecordTable<TData extends RowData & { id: string }>({
     initialState: {
       sorting: initialSorting,
       ...(columnVisibility ? { columnVisibility } : {}),
-      columnPinning: { start: ["select"], end: [] },
+      columnPinning: { start: ["select"], end: ["actions"] },
     },
     queryKeys,
     getRowId: (row: TData) => row.id,

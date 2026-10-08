@@ -25,6 +25,7 @@ interface DataTableSkeletonColumn {
   cellWidth?: number;
   checkbox?: boolean;
   size?: string;
+  pin?: "start" | "end";
 }
 
 interface DataTableSkeletonProps extends React.ComponentProps<"div"> {
@@ -44,6 +45,21 @@ interface DataTableSkeletonProps extends React.ComponentProps<"div"> {
 
 function columnWidth(column: DataTableSkeletonColumn) {
   return column.width > 0 ? column.width : column.size;
+}
+
+function pinStyle(pin: DataTableSkeletonColumn["pin"]): React.CSSProperties {
+  if (pin === "end") {
+    return {
+      position: "sticky",
+      insetInlineEnd: 0,
+      zIndex: 1,
+      boxShadow: "-1px 0 0 0 var(--border)",
+    };
+  }
+  if (pin === "start") {
+    return { position: "sticky", insetInlineStart: 0, zIndex: 1 };
+  }
+  return {};
 }
 
 function itemProps(item: string | DataTableSkeletonItem) {
@@ -70,7 +86,7 @@ export function DataTableSkeleton({
   className,
   ...props
 }: DataTableSkeletonProps) {
-  const resolvedColumns =
+  const resolvedColumns: DataTableSkeletonColumn[] =
     columns ??
     Array.from({ length: columnCount }, (_, index) => ({
       width: 0,
@@ -116,10 +132,11 @@ export function DataTableSkeleton({
               {resolvedColumns.map((column, index) => (
                 <TableHead
                   key={index}
-                  className={cn("overflow-hidden", column.checkbox && "pr-0")}
+                  className={cn("overflow-hidden", column.checkbox && "pr-0", column.pin && "bg-background")}
                   style={{
                     width: columnWidth(column),
                     minWidth: shrinkZero ? columnWidth(column) : undefined,
+                    ...pinStyle(column.pin),
                   }}
                 >
                   <Skeleton
@@ -138,10 +155,15 @@ export function DataTableSkeleton({
                 {resolvedColumns.map((column, index) => (
                   <TableCell
                     key={index}
-                    className={cn("overflow-hidden", column.checkbox && "pr-0")}
+                    className={cn(
+                      "overflow-hidden",
+                      column.checkbox && "pr-0",
+                      column.pin && "bg-background",
+                    )}
                     style={{
                       width: columnWidth(column),
                       minWidth: shrinkZero ? columnWidth(column) : undefined,
+                      ...pinStyle(column.pin),
                     }}
                   >
                     <Skeleton

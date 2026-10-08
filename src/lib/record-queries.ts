@@ -71,6 +71,7 @@ export type StaffTableRow = {
   name: string;
   email: string;
   role: string;
+  permissions: string[];
   seeded: boolean;
   createdAt: number;
 };
@@ -88,6 +89,7 @@ export async function queryStaff(
     name: true,
     email: true,
     role: true,
+    permissions: true,
     createdAt: true,
   } satisfies Prisma.UserSelect;
   return loadRows({
@@ -102,6 +104,7 @@ export async function queryStaff(
       name: user.name,
       email: user.email,
       role: user.role,
+      permissions: user.permissions,
       seeded: isSeededAdmin(user.email),
       createdAt: user.createdAt.getTime(),
     }),

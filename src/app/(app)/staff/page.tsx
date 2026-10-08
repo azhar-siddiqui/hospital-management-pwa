@@ -8,7 +8,7 @@ import { readDataTableQuery, readTableMode, staffFilters, staffSearch } from "@/
 import { Suspense } from "react";
 
 export default async function StaffPage({ searchParams }: PageProps<"/staff">) {
-  await requireAdmin();
+  const user = await requireAdmin();
   const parsed = await staffSearch.parse(searchParams);
   const { dataMode, filterMode } = readTableMode(parsed);
   const { rows, total, pageCount, capped } = await queryStaff(
@@ -33,7 +33,13 @@ export default async function StaffPage({ searchParams }: PageProps<"/staff">) {
         }
       >
         <TableControlMenu />
-        <StaffTable data={rows} pageCount={pageCount} dataMode={dataMode} filterMode={filterMode} />
+        <StaffTable
+          data={rows}
+          pageCount={pageCount}
+          dataMode={dataMode}
+          filterMode={filterMode}
+          currentUserId={user.id}
+        />
       </Suspense>
     </main>
   );
