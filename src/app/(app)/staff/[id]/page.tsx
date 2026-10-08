@@ -34,35 +34,37 @@ export default async function StaffPermissionsPage({
     <main className="flex min-w-0 flex-col gap-8">
       <div className="min-w-0">
         <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">Permissions</h1>
-        <p className="mt-1 max-w-2xl text-sm break-words text-muted-foreground">
-          Choose every area {account.name} can use.
-        </p>
-        {locked ? null : (
-          <p className="mt-1 max-w-2xl text-sm break-words text-muted-foreground">
-            Manage staff is the only permission that opens a screen today. Every other choice is
-            saved on this account.
-          </p>
-        )}
-        <p className="mt-2 text-sm font-medium">{roleLabel(account.role)}</p>
+        <p className="mt-1 text-sm wrap-break-word text-muted-foreground">{account.name}</p>
+        <p className="mt-1 text-sm font-medium">{roleLabel(account.role)}</p>
       </div>
       {locked ? (
-        <div className="flex max-w-2xl flex-col items-start gap-4">
-          <p className="text-sm">
-            {account.id === actor.id
-              ? "You can’t change your own permissions."
-              : "The admin account keeps every permission."}
-          </p>
-          <Button
-            variant="outline"
-            className="scroll-mb-[calc(5.25rem+env(safe-area-inset-bottom))] md:scroll-mb-0"
-            nativeButton={false}
-            render={<Link href="/staff" />}
-          >
-            Back to staff
-          </Button>
+        <div className="flex w-full min-w-0 flex-col gap-6">
+          <section className="min-w-0 rounded-xl bg-card px-4 py-4 text-card-foreground ring-1 ring-foreground/10 sm:px-5">
+            <h2 className="text-sm font-medium">Role & access</h2>
+            <p className="mt-2 text-sm">
+              {account.id === actor.id
+                ? "You can't change your own permissions."
+                : "The admin account keeps every permission."}
+            </p>
+          </section>
+          <div>
+            <Button
+              variant="ghost"
+              className="scroll-mb-[calc(5.25rem+env(safe-area-inset-bottom))] md:scroll-mb-0"
+              nativeButton={false}
+              render={<Link href="/staff" />}
+            >
+              Back
+            </Button>
+          </div>
         </div>
       ) : (
-        <StaffPermissionForm key={account.id} userId={account.id} assigned={assigned} />
+        <StaffPermissionForm
+          key={account.id}
+          userId={account.id}
+          name={account.name}
+          assigned={assigned}
+        />
       )}
     </main>
   );
