@@ -40,6 +40,7 @@ import { cn } from "cn";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
+import { ThemeToggle } from "./theme-toggle";
 
 type ShellUser = { name: string; role: string; permissions: string[] };
 
@@ -111,6 +112,7 @@ function AppHeader({ todayLabel, user }: { todayLabel: string; user: ShellUser }
           <SidebarTrigger className="size-11" />
           <p className="min-w-0 flex-1 truncate text-sm font-semibold">{title}</p>
           <div className="flex shrink-0 items-center gap-2">
+            <ThemeToggle />
             <p className="text-sm text-muted-foreground">{todayLabel}</p>
             <span className="h-5 w-px bg-border" aria-hidden />
             <span
