@@ -1,7 +1,7 @@
-import { DataTableSkeleton } from "@/components/data-table/data-table-skeleton";
 import { RecordCount } from "@/components/data-table/record-count";
 import { TableControlMenu } from "@/components/data-table/table-control-menu";
 import { StaffTable } from "@/components/tables/directory-tables";
+import { StaffControlsSkeleton, StaffTableSkeleton } from "@/components/tables/staff-page-skeleton";
 import { requireAdmin } from "@/lib/auth";
 import { queryStaff } from "@/lib/record-queries";
 import { readDataTableQuery, readTableMode, staffFilters, staffSearch } from "@/lib/table-search";
@@ -24,7 +24,14 @@ export default async function StaffPage({ searchParams }: PageProps<"/staff">) {
         <RecordCount total={total} capped={capped} />
       </div>
 
-      <Suspense fallback={<DataTableSkeleton columnCount={6} filterCount={4} />}>
+      <Suspense
+        fallback={
+          <>
+            <StaffControlsSkeleton />
+            <StaffTableSkeleton />
+          </>
+        }
+      >
         <TableControlMenu />
         <StaffTable data={rows} pageCount={pageCount} dataMode={dataMode} filterMode={filterMode} />
       </Suspense>
