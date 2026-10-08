@@ -12,6 +12,7 @@ import {
   PERMISSION_MATRIX,
   PERMISSION_MATRIX_COLUMNS,
   permissionMatrixMinWidth,
+  permissionMatrixModuleWidth,
   permissionsInCells,
   permissionsInColumn,
   type PermissionMatrixColumn,
@@ -72,15 +73,21 @@ export function StaffPermissionForm({
         <div className="overflow-x-auto" data-slot="table-container">
           <table
             className="w-full border-collapse text-sm"
-            style={{ minWidth: permissionMatrixMinWidth }}
+            style={{ tableLayout: "fixed", minWidth: permissionMatrixMinWidth }}
           >
             <caption className="sr-only">Permissions for {name}</caption>
+            <colgroup>
+              <col style={{ width: permissionMatrixModuleWidth }} />
+              {PERMISSION_MATRIX_COLUMNS.map((column) => (
+                <col key={column.id} />
+              ))}
+            </colgroup>
             <thead>
               <tr className="border-b bg-muted">
                 <th
                   scope="col"
-                  className="sticky left-0 z-20 border-r bg-muted px-3 text-left font-medium"
-                  style={{ minWidth: 180 }}
+                  className="sticky left-0 z-20 border-r bg-muted px-6 text-left font-medium whitespace-nowrap"
+                  style={{ width: permissionMatrixModuleWidth }}
                 >
                   <span className="flex h-11 items-center gap-2">
                     <MatrixCheck
@@ -96,13 +103,8 @@ export function StaffPermissionForm({
                 {PERMISSION_MATRIX_COLUMNS.map((column) => {
                   const permissions = permissionsInColumn(column.id);
                   return (
-                    <th
-                      key={column.id}
-                      scope="col"
-                      className="px-2 text-center font-medium"
-                      style={{ width: 112 }}
-                    >
-                      <span className="flex h-11 items-center justify-center gap-2">
+                    <th key={column.id} scope="col" className="px-6 text-left font-medium border-r">
+                      <span className="flex h-11 items-center justify-start gap-2">
                         <MatrixCheck
                           label={`All ${column.label} permissions`}
                           permissions={permissions}
@@ -124,8 +126,8 @@ export function StaffPermissionForm({
                   <tr key={row.label} className="border-b last:border-b-0">
                     <th
                       scope="row"
-                      className="sticky left-0 z-10 border-r bg-card px-3 text-left font-medium"
-                      style={{ minWidth: 180 }}
+                      className="sticky left-0 z-10 border-r bg-card px-6 text-left font-medium whitespace-nowrap"
+                      style={{ width: permissionMatrixModuleWidth }}
                     >
                       <span className="flex h-11 items-center gap-2">
                         <MatrixCheck
@@ -141,7 +143,7 @@ export function StaffPermissionForm({
                     {PERMISSION_MATRIX_COLUMNS.map((column) => {
                       const permission = cellPermission(row.cells, column.id);
                       return (
-                        <td key={column.id} className="px-2 text-center" style={{ width: 112 }}>
+                        <td key={column.id} className="px-6 text-left border-r">
                           {permission ? (
                             <span className="inline-flex h-11 items-center justify-center">
                               <Checkbox

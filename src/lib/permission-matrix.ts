@@ -74,4 +74,6 @@ export function permissionsInColumn(columnId: PermissionMatrixColumn) {
   });
 }
 
-export const permissionMatrixMinWidth = 180 + PERMISSION_MATRIX_COLUMNS.length * 112;
+export const permissionMatrixModuleWidth = 300;
+export const permissionMatrixMinWidth =
+  permissionMatrixModuleWidth + PERMISSION_MATRIX_COLUMNS.length * 112;

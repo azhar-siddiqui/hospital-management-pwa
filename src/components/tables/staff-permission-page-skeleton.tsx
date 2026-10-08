@@ -3,6 +3,7 @@ import {
   PERMISSION_MATRIX,
   PERMISSION_MATRIX_COLUMNS,
   permissionMatrixMinWidth,
+  permissionMatrixModuleWidth,
 } from "@/lib/permission-matrix";
 
 function TextBar({ text, className }: { text: string; className: string }) {
@@ -55,13 +56,19 @@ export function StaffPermissionPageSkeleton() {
           <div className="overflow-x-auto">
             <table
               className="w-full border-collapse text-sm"
-              style={{ minWidth: permissionMatrixMinWidth }}
+              style={{ tableLayout: "fixed", minWidth: permissionMatrixMinWidth }}
             >
+              <colgroup>
+                <col style={{ width: permissionMatrixModuleWidth }} />
+                {PERMISSION_MATRIX_COLUMNS.map((column) => (
+                  <col key={column.id} />
+                ))}
+              </colgroup>
               <thead>
                 <tr className="border-b bg-muted">
                   <th
-                    className="sticky left-0 z-20 border-r bg-muted px-3 text-left"
-                    style={{ minWidth: 180 }}
+                    className="sticky left-0 z-20 border-r bg-muted px-3 text-left whitespace-nowrap"
+                    style={{ width: permissionMatrixModuleWidth }}
                   >
                     <span className="flex h-11 items-center gap-2">
                       <CheckBar />
@@ -69,7 +76,7 @@ export function StaffPermissionPageSkeleton() {
                     </span>
                   </th>
                   {PERMISSION_MATRIX_COLUMNS.map((column) => (
-                    <th key={column.id} className="px-2" style={{ width: 112 }}>
+                    <th key={column.id} className="px-2">
                       <span className="flex h-11 items-center justify-center gap-2">
                         <CheckBar />
                         <TextBar text={column.label} className="text-sm font-medium" />
@@ -82,8 +89,8 @@ export function StaffPermissionPageSkeleton() {
                 {PERMISSION_MATRIX.map((row) => (
                   <tr key={row.label} className="border-b last:border-b-0">
                     <th
-                      className="sticky left-0 z-10 border-r bg-card px-3 text-left"
-                      style={{ minWidth: 180 }}
+                      className="sticky left-0 z-10 border-r bg-card px-3 text-left whitespace-nowrap"
+                      style={{ width: permissionMatrixModuleWidth }}
                     >
                       <span className="flex h-11 items-center gap-2">
                         <CheckBar />
@@ -91,7 +98,7 @@ export function StaffPermissionPageSkeleton() {
                       </span>
                     </th>
                     {PERMISSION_MATRIX_COLUMNS.map((column) => (
-                      <td key={column.id} className="px-2 text-center" style={{ width: 112 }}>
+                      <td key={column.id} className="px-2 text-center">
                         {column.id in row.cells ? (
                           <span className="inline-flex h-11 items-center justify-center">
                             <CheckBar />
