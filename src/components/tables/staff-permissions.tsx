@@ -24,8 +24,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { idleState } from "@/lib/action-state";
 import {
+  PERMISSION_GROUPS,
   PERMISSIONS,
-  permissionDescription,
   permissionLabel,
   type Permission,
 } from "@/lib/permissions";
@@ -165,25 +165,31 @@ function StaffPermissionDialog({
           <div
             role="group"
             aria-labelledby={labelId}
-            className="flex max-h-[50vh] flex-col gap-3 overflow-y-auto"
+            className="flex max-h-[50vh] flex-col gap-4 overflow-y-auto"
           >
-            <p id={labelId} className="text-sm font-medium">
+            <p id={labelId} className="sr-only">
               Permissions
             </p>
-            {PERMISSIONS.map((permission) => (
-              <label key={permission} className="flex items-start gap-2">
-                <Checkbox
-                  checked={selected.includes(permission)}
-                  onCheckedChange={(checked) => toggle(permission, checked)}
-                  aria-label={permissionLabel(permission)}
-                />
-                <span className="min-w-0">
-                  <span className="block text-sm font-medium">{permissionLabel(permission)}</span>
-                  <span className="block text-xs text-muted-foreground">
-                    {permissionDescription(permission)}
-                  </span>
-                </span>
-              </label>
+            {PERMISSION_GROUPS.map((group) => (
+              <div key={group.label} className="flex flex-col gap-2">
+                <div>
+                  <p className="text-sm font-medium">{group.label}</p>
+                  <p className="text-xs text-muted-foreground">{group.description}</p>
+                </div>
+                {group.items.map((item) => (
+                  <label key={item.permission} className="flex items-start gap-2">
+                    <Checkbox
+                      checked={selected.includes(item.permission)}
+                      onCheckedChange={(checked) => toggle(item.permission, checked)}
+                      aria-label={item.label}
+                    />
+                    <span className="min-w-0">
+                      <span className="block text-sm font-medium">{item.label}</span>
+                      <span className="block text-xs text-muted-foreground">{item.detail}</span>
+                    </span>
+                  </label>
+                ))}
+              </div>
             ))}
           </div>
           {state.message && !state.ok ? (
