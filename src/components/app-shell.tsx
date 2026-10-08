@@ -8,7 +8,6 @@ import {
   sectionTitle,
   type NavItem,
 } from "@/components/app-nav";
-import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 import {
   Sidebar,
@@ -26,10 +25,17 @@ import {
   SidebarTrigger,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { preferenceCookie, SIDEBAR_COOKIE, type ThemePreference } from "@/lib/chrome";
+import { preferenceCookie, SIDEBAR_COOKIE } from "@/lib/chrome";
 import { dashboardCollection, freeBeds, opdToday } from "@/lib/dashboard-sample";
 import { roleLabel } from "@/lib/roles";
-import { IconBed, IconCash, IconLogout, IconPlus, IconStethoscope, IconX } from "@tabler/icons-react";
+import {
+  IconBed,
+  IconCash,
+  IconLogout,
+  IconPlus,
+  IconStethoscope,
+  IconX,
+} from "@tabler/icons-react";
 import { cn } from "cn";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -57,13 +63,11 @@ const sidebarToday = [
 export function AppShell({
   user,
   todayLabel,
-  theme,
   sidebarClosed: sidebarStartsClosed,
   children,
 }: {
   user: ShellUser;
   todayLabel: string;
-  theme: ThemePreference;
   sidebarClosed: boolean;
   children: React.ReactNode;
 }) {
@@ -80,7 +84,7 @@ export function AppShell({
     >
       <AppSidebar user={user} />
       <div className="flex min-w-0 flex-1 flex-col">
-        <AppHeader todayLabel={todayLabel} theme={theme} user={user} />
+        <AppHeader todayLabel={todayLabel} user={user} />
         <div className="mx-auto flex w-full flex-1 flex-col px-4 pt-5 pb-[calc(5.25rem+env(safe-area-inset-bottom))] sm:px-6 sm:pt-6 md:px-8 md:pt-8 md:pb-8 print:max-w-none print:bg-white print:p-0">
           {children}
         </div>
@@ -90,15 +94,7 @@ export function AppShell({
   );
 }
 
-function AppHeader({
-  todayLabel,
-  theme,
-  user,
-}: {
-  todayLabel: string;
-  theme: ThemePreference;
-  user: ShellUser;
-}) {
+function AppHeader({ todayLabel, user }: { todayLabel: string; user: ShellUser }) {
   const pathname = usePathname();
   const title = sectionTitle(pathname);
 
@@ -108,7 +104,6 @@ function AppHeader({
         <div className="flex h-14 items-center gap-1 px-2">
           <SidebarTrigger className="size-11" />
           <p className="min-w-0 flex-1 truncate text-sm font-semibold">{title}</p>
-          <ThemeToggle theme={theme} />
         </div>
       </header>
       <header className="app-chrome sticky top-0 z-20 hidden border-b border-border bg-card/95 backdrop-blur-md md:block">
@@ -118,7 +113,6 @@ function AppHeader({
           <div className="flex shrink-0 items-center gap-2">
             <p className="text-sm text-muted-foreground">{todayLabel}</p>
             <span className="h-5 w-px bg-border" aria-hidden />
-            <ThemeToggle theme={theme} />
             <span
               className="grid size-8 place-items-center rounded-full bg-muted text-xs font-semibold"
               aria-hidden
