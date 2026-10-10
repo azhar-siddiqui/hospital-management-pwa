@@ -8,7 +8,15 @@ import {
   sectionTitle,
   type NavItem,
 } from "@/components/app-nav";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   Sidebar,
   SidebarContent,
@@ -33,6 +41,7 @@ import {
   IconCash,
   IconLogout,
   IconPlus,
+  IconSelector,
   IconStethoscope,
   IconX,
 } from "@tabler/icons-react";
@@ -42,7 +51,7 @@ import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { ThemeToggle } from "./theme-toggle";
 
-type ShellUser = { name: string; role: string; permissions: string[] };
+type ShellUser = { name: string; email: string; role: string; permissions: string[] };
 
 const sidebarRupees = new Intl.NumberFormat("en-IN", {
   style: "currency",
@@ -237,34 +246,69 @@ function AppSidebar({ user }: { user: ShellUser }) {
             </dl>
           </section>
           <div className="mt-2 border-t border-border px-1 pt-2 group-data-[collapsible=icon]:mt-0 group-data-[collapsible=icon]:border-0 group-data-[collapsible=icon]:px-0 group-data-[collapsible=icon]:pt-0">
-            <div className="flex items-center gap-2.5 px-1 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0">
-              <span
-                className="grid size-8 shrink-0 place-items-center rounded-full bg-muted text-xs font-semibold ring-1 ring-foreground/10"
-                aria-hidden
-              >
-                {initials(user.name)}
-              </span>
-              <div className="min-w-0 flex-1 group-data-[collapsible=icon]:hidden">
-                <p className="truncate text-sm font-semibold">{user.name}</p>
-                <p className="truncate text-xs text-muted-foreground">{roleLabel(user.role)}</p>
-              </div>
-            </div>
-            <form action={logout} className="mt-1.5 group-data-[collapsible=icon]:mt-1">
-              <Button
-                type="submit"
-                variant="outline"
-                className="h-11 w-full bg-transparent text-muted-foreground group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:px-0"
-                aria-label="Sign out"
-              >
-                <IconLogout />
-                <span className="group-data-[collapsible=icon]:sr-only">Sign out</span>
-              </Button>
-            </form>
+            <SidebarAccount user={user} />
           </div>
         </div>
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>
+  );
+}
+
+function SidebarAccount({ user }: { user: ShellUser }) {
+  const { isMobile, state } = useSidebar();
+  const collapsed = !isMobile && state === "collapsed";
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger
+        type="button"
+        aria-label="Account menu"
+        className="flex min-h-11 w-full cursor-pointer items-center gap-2.5 rounded-lg border-0 bg-transparent px-1 text-left text-foreground outline-none hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring data-popup-open:bg-muted group-data-[collapsible=icon]:mx-auto group-data-[collapsible=icon]:size-10 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0"
+      >
+        <Avatar>
+          <AvatarFallback className="text-xs font-semibold">{initials(user.name)}</AvatarFallback>
+        </Avatar>
+        <span className="min-w-0 flex-1 group-data-[collapsible=icon]:hidden">
+          <span className="block truncate text-sm font-semibold">{user.name}</span>
+          <span className="block truncate text-xs text-muted-foreground">{user.email}</span>
+        </span>
+        <IconSelector
+          className="size-4 shrink-0 text-muted-foreground group-data-[collapsible=icon]:hidden"
+          aria-hidden
+        />
+      </DropdownMenuTrigger>
+      <DropdownMenuContent
+        side={collapsed ? "right" : "top"}
+        align={collapsed ? "end" : "start"}
+        sideOffset={8}
+        className="w-64 min-w-64"
+      >
+        <div className="flex items-center gap-2.5 px-1.5 py-2">
+          <Avatar>
+            <AvatarFallback className="text-xs font-semibold">{initials(user.name)}</AvatarFallback>
+          </Avatar>
+          <div className="min-w-0">
+            <p className="truncate text-sm font-semibold">{user.name}</p>
+            <p className="truncate text-xs text-muted-foreground">{user.email}</p>
+            <p className="truncate text-xs text-muted-foreground">{roleLabel(user.role)}</p>
+          </div>
+        </div>
+        <DropdownMenuSeparator />
+        <form action={logout}>
+          <DropdownMenuItem
+            nativeButton
+            closeOnClick={false}
+            variant="destructive"
+            className="h-11 w-full"
+            render={<button type="submit" />}
+          >
+            <IconLogout />
+            Sign out
+          </DropdownMenuItem>
+        </form>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }
 

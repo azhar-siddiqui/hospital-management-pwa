@@ -10,7 +10,12 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   return (
     <AppShell
-      user={{ name: user.name, role: user.role, permissions: user.permissions }}
+      user={{
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        permissions: user.permissions,
+      }}
       todayLabel={formatHospitalDay()}
       sidebarClosed={sidebarClosed(jar.get(SIDEBAR_COOKIE)?.value)}
     >
