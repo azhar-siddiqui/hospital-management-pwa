@@ -96,7 +96,6 @@ export function StaffEditForm({
                   {...field}
                   id="edit-staff-name"
                   autoComplete="name"
-                  className="h-11"
                   disabled={pending}
                   aria-invalid={fieldState.invalid}
                   onChange={(event) => {
@@ -122,7 +121,6 @@ export function StaffEditForm({
                   autoComplete="off"
                   spellCheck={false}
                   placeholder="username"
-                  className="h-11"
                   disabled={pending}
                   aria-invalid={fieldState.invalid}
                 />
@@ -140,13 +138,12 @@ export function StaffEditForm({
             render={({ field, fieldState }) => (
               <Field data-invalid={fieldState.invalid}>
                 <FieldLabel htmlFor="edit-staff-password">Password</FieldLabel>
-                <InputGroup className="h-11">
+                <InputGroup>
                   <InputGroupInput
                     {...field}
                     id="edit-staff-password"
                     type={showPassword ? "text" : "password"}
                     autoComplete="new-password"
-                    className="h-11"
                     disabled={pending}
                     aria-invalid={fieldState.invalid}
                   />
@@ -186,7 +183,7 @@ export function StaffEditForm({
                 >
                   <SelectTrigger
                     id="edit-staff-role"
-                    className="h-11 w-full data-[size=default]:h-11"
+                    className="w-full"
                     aria-invalid={fieldState.invalid}
                   >
                     <SelectValue />
