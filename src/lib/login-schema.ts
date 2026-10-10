@@ -2,7 +2,7 @@ import * as z from "zod";
 
 export const loginSchema = z.object({
   email: z
-    .string()
+    .email("Enter a valid email address.")
     .trim()
     .min(1, { error: "Enter your work email.", abort: true })
     .max(254, { error: "Enter a valid email address.", abort: true }),
@@ -10,5 +10,3 @@ export const loginSchema = z.object({
 });
 
 export type LoginValues = z.infer<typeof loginSchema>;
-
-// .email("Enter a valid email address.")
