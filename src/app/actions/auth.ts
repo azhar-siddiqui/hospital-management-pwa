@@ -2,6 +2,7 @@
 
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { loginSchema } from "@/lib/login-schema";
 import { safeReturnPath } from "@/lib/permissions";
 import { authenticate } from "@/lib/users";
 import { createSessionToken, SESSION_COOKIE, sessionCookieOptions } from "@/lib/session";
@@ -15,15 +16,18 @@ function safeNextPath(value: FormDataEntryValue | null) {
 }
 
 export async function login(_state: LoginState, formData: FormData): Promise<LoginState> {
-  const email = String(formData.get("email") ?? "");
-  const password = String(formData.get("password") ?? "");
-  const nextPath = safeNextPath(formData.get("next"));
-
-  if (!email.trim() || !password) {
-    return { message: "Enter your email and password." };
+  const email = formData.get("email");
+  const password = formData.get("password");
+  const parsed = loginSchema.safeParse({
+    email: typeof email === "string" ? email : "",
+    password: typeof password === "string" ? password : "",
+  });
+  if (!parsed.success) {
+    return { message: parsed.error.issues[0]?.message ?? "Enter your email and password." };
   }
 
-  const user = await authenticate(email, password);
+  const nextPath = safeNextPath(formData.get("next"));
+  const user = await authenticate(parsed.data.email, parsed.data.password);
   if (!user) {
     return { message: "Email or password is incorrect." };
   }
