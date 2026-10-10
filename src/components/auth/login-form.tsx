@@ -27,7 +27,7 @@ import {
   IconEye,
   IconEyeOff,
   IconLock,
-  IconMail,
+  IconUser,
 } from "@tabler/icons-react";
 import { startTransition, useActionState, useEffect, useState, useSyncExternalStore } from "react";
 import { Controller, useForm } from "react-hook-form";
@@ -160,7 +160,7 @@ export function LoginForm({ nextPath }: { nextPath?: string }) {
       <header className="mb-8">
         <h1 className="font-heading text-2xl font-semibold tracking-tight">Sign in</h1>
         <p className="mt-2 text-sm leading-relaxed text-pretty text-muted-foreground">
-          Use the staff email and password an administrator created for you.
+          Use the username and password an administrator created for you.
         </p>
       </header>
       <form id="login-form" noValidate onSubmit={form.handleSubmit(onSubmit)} aria-busy={pending}>
@@ -170,22 +170,21 @@ export function LoginForm({ nextPath }: { nextPath?: string }) {
             control={form.control}
             render={({ field, fieldState }) => (
               <Field data-invalid={fieldState.invalid}>
-                <FieldLabel htmlFor="login-email">Username</FieldLabel>
+                <FieldLabel htmlFor="login-username">Username</FieldLabel>
                 <InputGroup className="h-11">
                   <InputGroupAddon>
-                    <IconMail />
+                    <IconUser />
                   </InputGroupAddon>
                   <InputGroupInput
                     {...field}
-                    id="login-email"
-                    type="email"
-                    inputMode="email"
+                    id="login-username"
+                    type="text"
                     autoCapitalize="none"
                     autoComplete="username"
                     spellCheck={false}
-                    placeholder="name@hospital.org"
+                    placeholder="username"
                     aria-invalid={fieldState.invalid}
-                    aria-describedby={fieldState.invalid ? "login-email-error" : undefined}
+                    aria-describedby={fieldState.invalid ? "login-username-error" : undefined}
                     disabled={pending}
                     className="h-11"
                     onChange={(event) => {
@@ -195,7 +194,7 @@ export function LoginForm({ nextPath }: { nextPath?: string }) {
                   />
                 </InputGroup>
                 {fieldState.invalid ? (
-                  <FieldError id="login-email-error" errors={[fieldState.error]} />
+                  <FieldError id="login-username-error" errors={[fieldState.error]} />
                 ) : null}
               </Field>
             )}

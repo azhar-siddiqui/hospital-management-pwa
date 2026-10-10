@@ -23,13 +23,13 @@ export async function login(_state: LoginState, formData: FormData): Promise<Log
     password: typeof password === "string" ? password : "",
   });
   if (!parsed.success) {
-    return { message: parsed.error.issues[0]?.message ?? "Enter your email and password." };
+    return { message: parsed.error.issues[0]?.message ?? "Enter your username and password." };
   }
 
   const nextPath = safeNextPath(formData.get("next"));
   const user = await authenticate(parsed.data.email, parsed.data.password);
   if (!user) {
-    return { message: "Email or password is incorrect." };
+    return { message: "Username or password is incorrect." };
   }
 
   const token = await createSessionToken(user.id, user.role);
