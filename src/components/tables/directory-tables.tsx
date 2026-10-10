@@ -17,10 +17,12 @@ import type { DataTableFeatures } from "@/lib/data-table-features";
 import { formatWhen } from "@/lib/format";
 import { APP_ROLES, permissionLabel } from "@/lib/permissions";
 import type { StaffTableRow } from "@/lib/record-queries";
+import { beginStaffEdit } from "@/lib/staff-account-cache";
 import { roleLabel } from "@/lib/roles";
 import type { DataMode, FilterMode } from "@/lib/table-search";
 import { cn } from "cn";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { buttonVariants } from "../ui/button";
 
 const roleOptions = APP_ROLES.map((role) => ({ label: roleLabel(role), value: role }));
@@ -83,6 +85,29 @@ function dateCell(value: number) {
   return <span className="text-muted-foreground">{formatWhen(new Date(value))}</span>;
 }
 
+function StaffNameLink({ member }: { member: StaffTableRow }) {
+  const router = useRouter();
+  return (
+    <Link
+      href={`/staff/${member.id}`}
+      prefetch={false}
+      className={cn(buttonVariants({ variant: "link" }))}
+      onPointerEnter={() => router.prefetch(`/staff/${member.id}`)}
+      onClick={() =>
+        beginStaffEdit({
+          id: member.id,
+          name: member.name,
+          email: member.email,
+          role: member.role,
+          permissions: member.permissions,
+        })
+      }
+    >
+      {member.name}
+    </Link>
+  );
+}
+
 export function StaffTable({
   data,
   pageCount,
@@ -116,12 +141,7 @@ export function StaffTable({
           row.original.id === currentUserId ? (
             <span className={cn(buttonVariants({ variant: "ghost" }))}>{row.original.name}</span>
           ) : (
-            <Link
-              href={`/staff/${row.original.id}`}
-              className={cn(buttonVariants({ variant: "link" }))}
-            >
-              {row.original.name}
-            </Link>
+            <StaffNameLink member={row.original} />
           ),
         meta: { label: "Name" },
         size: 180,
@@ -198,6 +218,9 @@ export function StaffTable({
           <StaffRowActions
             userId={row.original.id}
             name={row.original.name}
+            email={row.original.email}
+            role={row.original.role}
+            permissions={row.original.permissions}
             locked={
               row.original.role === "ADMIN" ||
               row.original.seeded ||

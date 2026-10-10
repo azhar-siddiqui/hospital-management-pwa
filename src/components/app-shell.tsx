@@ -282,7 +282,7 @@ function SidebarAccount({ user }: { user: ShellUser }) {
         side={collapsed ? "right" : "top"}
         align={collapsed ? "end" : "start"}
         sideOffset={8}
-        className="w-64 min-w-64"
+        className="w-64 max-w-56"
       >
         <div className="flex items-center gap-2.5 px-1.5 py-2">
           <Avatar>
@@ -300,11 +300,11 @@ function SidebarAccount({ user }: { user: ShellUser }) {
             nativeButton
             closeOnClick={false}
             variant="destructive"
-            className="h-11 w-full"
+            className="w-full flex items-center justify-between cursor-pointer"
             render={<button type="submit" />}
           >
-            <IconLogout />
             Sign out
+            <IconLogout />
           </DropdownMenuItem>
         </form>
       </DropdownMenuContent>
