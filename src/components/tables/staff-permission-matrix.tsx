@@ -66,7 +66,7 @@ export function StaffPermissionMatrix({
             <tr className="border-b bg-muted">
               <th
                 scope="col"
-                className="sticky left-0 z-20 border-r bg-muted px-6 text-left font-medium whitespace-nowrap"
+                className="sticky left-0 z-10 border-r bg-muted px-6 text-left font-medium whitespace-nowrap"
                 style={{ width: permissionMatrixModuleWidth }}
               >
                 <span className="flex h-11 items-center gap-2">
