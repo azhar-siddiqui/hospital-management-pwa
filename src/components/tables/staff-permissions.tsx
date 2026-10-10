@@ -60,7 +60,7 @@ export function StaffRowActions({
         <IconDotsVertical />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        <DropdownMenuItem render={<Link href={`/staff/${userId}`} />}>Change</DropdownMenuItem>
+        <DropdownMenuItem render={<Link href={`/staff/${userId}`} />}>Edit</DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );

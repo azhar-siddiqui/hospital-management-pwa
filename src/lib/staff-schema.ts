@@ -15,3 +15,10 @@ export const staffAccountSchema = z.object({
 });
 
 export type StaffAccountValues = z.infer<typeof staffAccountSchema>;
+
+/** Password stays unchanged when the field is left blank. */
+export const staffAccountUpdateSchema = staffAccountSchema.extend({
+  password: z.union([z.literal(""), z.string().min(8, "Use at least 8 characters.")]),
+});
+
+export type StaffAccountUpdateValues = z.infer<typeof staffAccountUpdateSchema>;

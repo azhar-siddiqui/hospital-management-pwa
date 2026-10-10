@@ -19,6 +19,9 @@ import { APP_ROLES, permissionLabel } from "@/lib/permissions";
 import type { StaffTableRow } from "@/lib/record-queries";
 import { roleLabel } from "@/lib/roles";
 import type { DataMode, FilterMode } from "@/lib/table-search";
+import { cn } from "cn";
+import Link from "next/link";
+import { buttonVariants } from "../ui/button";
 
 const roleOptions = APP_ROLES.map((role) => ({ label: roleLabel(role), value: role }));
 
@@ -107,7 +110,19 @@ export function StaffTable({
         id: "name",
         accessorKey: "name",
         header: header("Name"),
-        cell: ({ row }) => <span className="font-medium">{row.original.name}</span>,
+        cell: ({ row }) =>
+          row.original.role === "ADMIN" ||
+          row.original.seeded ||
+          row.original.id === currentUserId ? (
+            <span className={cn(buttonVariants({ variant: "ghost" }))}>{row.original.name}</span>
+          ) : (
+            <Link
+              href={`/staff/${row.original.id}`}
+              className={cn(buttonVariants({ variant: "link" }))}
+            >
+              {row.original.name}
+            </Link>
+          ),
         meta: { label: "Name" },
         size: 180,
       },

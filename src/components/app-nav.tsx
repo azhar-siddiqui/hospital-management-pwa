@@ -52,5 +52,6 @@ export function groupNav(links: NavItem[]) {
 
 export function sectionTitle(pathname: string) {
   if (pathname === "/staff/add-staff") return "Add staff";
+  if (pathname.startsWith("/staff/")) return "Edit staff";
   return NAV_ITEMS.find((item) => isCurrent(pathname, item.href))?.label ?? "Hospital";
 }
