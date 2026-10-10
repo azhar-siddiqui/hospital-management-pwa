@@ -30,11 +30,14 @@ import { idleState } from "@/lib/action-state";
 import type { Permission } from "@/lib/permissions";
 import { STAFF_ROLES, roleLabel } from "@/lib/roles";
 import { staffAccountSchema, type StaffAccountValues } from "@/lib/staff-schema";
+import { useRouter } from "next/navigation";
 
 const roleOptions = STAFF_ROLES.map((role) => ({ value: role, label: roleLabel(role) }));
 const scrollClearance = "scroll-mb-[calc(5.25rem+env(safe-area-inset-bottom))] md:scroll-mb-0";
 
 export function AddStaffForm() {
+  const router = useRouter();
+
   const [showPassword, setShowPassword] = useState(false);
   const [selected, setSelected] = useState<Permission[]>([]);
   const [subject, setSubject] = useState("this account");
@@ -201,12 +204,7 @@ export function AddStaffForm() {
         </Alert>
       )}
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <Button
-          variant="ghost"
-          className={scrollClearance}
-          nativeButton={false}
-          render={<Link href="/staff" />}
-        >
+        <Button variant="ghost" className={scrollClearance} onClick={() => router.back()}>
           <IconArrowLeft data-icon="inline-start" /> Back
         </Button>
         <div className="flex flex-wrap gap-2">

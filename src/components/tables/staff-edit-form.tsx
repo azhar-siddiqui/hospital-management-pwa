@@ -2,7 +2,6 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { IconArrowLeft, IconEye, IconEyeOff } from "@tabler/icons-react";
-import Link from "next/link";
 import { startTransition, useActionState, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 
@@ -30,6 +29,7 @@ import { idleState } from "@/lib/action-state";
 import type { Permission } from "@/lib/permissions";
 import { STAFF_ROLES, roleLabel, type StaffRole } from "@/lib/roles";
 import { staffAccountUpdateSchema, type StaffAccountUpdateValues } from "@/lib/staff-schema";
+import { useRouter } from "next/navigation";
 
 const roleOptions = STAFF_ROLES.map((role) => ({ value: role, label: roleLabel(role) }));
 const scrollClearance = "scroll-mb-[calc(5.25rem+env(safe-area-inset-bottom))] md:scroll-mb-0";
@@ -47,6 +47,8 @@ export function StaffEditForm({
   role: StaffRole;
   assigned: readonly Permission[];
 }) {
+  const router = useRouter();
+
   const [showPassword, setShowPassword] = useState(false);
   const [selected, setSelected] = useState<Permission[]>([...assigned]);
   const [subject, setSubject] = useState(name);
@@ -214,22 +216,12 @@ export function StaffEditForm({
         </Alert>
       ) : null}
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <Button
-          variant="ghost"
-          className={scrollClearance}
-          nativeButton={false}
-          render={<Link href="/staff" />}
-        >
+        <Button variant="ghost" className={scrollClearance} onClick={() => router.back()}>
           <IconArrowLeft data-icon="inline-start" />
           Back
         </Button>
         <div className="flex flex-wrap gap-2">
-          <Button
-            variant="outline"
-            className={scrollClearance}
-            nativeButton={false}
-            render={<Link href="/staff" />}
-          >
+          <Button variant="outline" className={scrollClearance} onClick={() => router.back()}>
             Cancel
           </Button>
           <Button type="submit" className={scrollClearance} disabled={pending}>
