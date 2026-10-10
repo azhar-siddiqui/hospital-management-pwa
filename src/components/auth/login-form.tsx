@@ -32,19 +32,70 @@ import {
 import { startTransition, useActionState, useEffect, useState, useSyncExternalStore } from "react";
 import { Controller, useForm } from "react-hook-form";
 
-const REMEMBERED_EMAIL_KEY = "hms.login.email";
+const REMEMBERED_LOGIN_KEY = "hms.login";
+const LEGACY_EMAIL_KEY = "hms.login.email";
 const initialState: LoginState = {};
 
-function subscribeRememberedEmail(onStoreChange: () => void) {
+type RememberedLogin = {
+  email: string;
+  password: string;
+};
+
+const emptyLogin: RememberedLogin = { email: "", password: "" };
+let cachedRaw: string | null | undefined;
+let cachedLogin: RememberedLogin = emptyLogin;
+
+function subscribeRememberedLogin(onStoreChange: () => void) {
   window.addEventListener("storage", onStoreChange);
   return () => window.removeEventListener("storage", onStoreChange);
 }
 
-function readRememberedEmail() {
+function rememberedRaw() {
+  const current = window.localStorage.getItem(REMEMBERED_LOGIN_KEY);
+  if (current) return current;
+  const legacy = window.localStorage.getItem(LEGACY_EMAIL_KEY);
+  if (!legacy) return null;
+  return JSON.stringify({ email: legacy, password: "" });
+}
+
+function readRememberedLogin(): RememberedLogin {
   try {
-    return window.localStorage.getItem(REMEMBERED_EMAIL_KEY) ?? "";
+    const raw = rememberedRaw();
+    if (raw === cachedRaw) return cachedLogin;
+    cachedRaw = raw;
+    if (!raw) {
+      cachedLogin = emptyLogin;
+      return emptyLogin;
+    }
+    const parsed = JSON.parse(raw) as Partial<RememberedLogin>;
+    cachedLogin = {
+      email: typeof parsed.email === "string" ? parsed.email : "",
+      password: typeof parsed.password === "string" ? parsed.password : "",
+    };
+    return cachedLogin;
   } catch {
-    return "";
+    cachedRaw = null;
+    cachedLogin = emptyLogin;
+    return emptyLogin;
+  }
+}
+
+function writeRememberedLogin(value: RememberedLogin | null) {
+  try {
+    window.localStorage.removeItem(LEGACY_EMAIL_KEY);
+    if (!value) {
+      window.localStorage.removeItem(REMEMBERED_LOGIN_KEY);
+      cachedRaw = null;
+      cachedLogin = emptyLogin;
+    } else {
+      const raw = JSON.stringify(value);
+      window.localStorage.setItem(REMEMBERED_LOGIN_KEY, raw);
+      cachedRaw = raw;
+      cachedLogin = value;
+    }
+    window.dispatchEvent(new StorageEvent("storage", { key: REMEMBERED_LOGIN_KEY }));
+  } catch {
+    // Sign-in still continues when this browser blocks storage.
   }
 }
 
@@ -53,13 +104,14 @@ export function LoginForm({ nextPath }: { nextPath?: string }) {
   const [seenState, setSeenState] = useState(state);
   const [hideNotice, setHideNotice] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const rememberedEmail = useSyncExternalStore(
-    subscribeRememberedEmail,
-    readRememberedEmail,
-    () => "",
+  const remembered = useSyncExternalStore(
+    subscribeRememberedLogin,
+    readRememberedLogin,
+    () => emptyLogin,
   );
   const [rememberOverride, setRememberOverride] = useState<boolean | null>(null);
-  const remember = rememberOverride ?? rememberedEmail.length > 0;
+  const remember =
+    rememberOverride ?? (remembered.email.length > 0 || remembered.password.length > 0);
 
   if (seenState !== state) {
     setSeenState(state);
@@ -77,16 +129,21 @@ export function LoginForm({ nextPath }: { nextPath?: string }) {
   });
 
   useEffect(() => {
-    if (!rememberedEmail || form.getValues("email")) return;
-    form.setValue("email", rememberedEmail);
-  }, [form, rememberedEmail]);
+    if (!remembered.email && !remembered.password) return;
+    if (!form.getValues("email") && remembered.email) {
+      form.setValue("email", remembered.email);
+    }
+    if (!form.getValues("password") && remembered.password) {
+      form.setValue("password", remembered.password);
+    }
+  }, [form, remembered]);
 
   function onSubmit(values: LoginValues) {
     if (pending) return;
     if (remember) {
-      window.localStorage.setItem(REMEMBERED_EMAIL_KEY, values.email);
+      writeRememberedLogin({ email: values.email, password: values.password });
     } else {
-      window.localStorage.removeItem(REMEMBERED_EMAIL_KEY);
+      writeRememberedLogin(null);
     }
     setHideNotice(true);
     const body = new FormData();
@@ -198,7 +255,7 @@ export function LoginForm({ nextPath }: { nextPath?: string }) {
               <FieldLabel htmlFor="login-remember" className="font-normal">
                 Remember me
               </FieldLabel>
-              <FieldDescription>Saves your email on this device.</FieldDescription>
+              <FieldDescription>Saves your username and password on this device.</FieldDescription>
             </FieldContent>
           </Field>
           {notice ? (
