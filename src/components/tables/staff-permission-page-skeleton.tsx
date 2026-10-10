@@ -75,7 +75,40 @@ export function StaffPermissionPageSkeleton({
               />
             </div>
           </div>
-          <div className="overflow-x-auto">
+          <div className="xl:hidden">
+            <div className="border-b bg-muted px-4 py-3">
+              <span className="flex h-11 items-center gap-2">
+                <CheckBar />
+                <TextBar text="All permissions" className="text-sm font-medium" />
+              </span>
+              <div className="mt-2 grid grid-cols-4 divide-x divide-border border-t border-border pt-2">
+                {PERMISSION_MATRIX_COLUMNS.map((column) => (
+                  <span key={column.id} className="flex flex-col items-center">
+                    <TextBar text={column.label} className="text-xs font-medium" />
+                    <span className="mt-1 flex h-11 items-center justify-center">
+                      <CheckBar />
+                    </span>
+                  </span>
+                ))}
+              </div>
+            </div>
+            {PERMISSION_MATRIX.map((row) => (
+              <div key={row.label} className="border-b px-4 py-1 last:border-b-0">
+                <span className="flex h-11 items-center gap-2">
+                  <CheckBar />
+                  <TextBar text={row.label} className="text-sm font-medium" />
+                </span>
+                <div className="grid grid-cols-4 divide-x divide-border border-t border-border">
+                  {PERMISSION_MATRIX_COLUMNS.map((column) => (
+                    <span key={column.id} className="flex h-11 items-center justify-center">
+                      {column.id in row.cells ? <CheckBar /> : null}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="hidden overflow-x-auto xl:block">
             <table
               className="w-full border-collapse text-sm"
               style={{ tableLayout: "fixed", minWidth: permissionMatrixMinWidth }}

@@ -43,14 +43,83 @@ export function StaffPermissionMatrix({
   }
 
   return (
-    <section className="min-w-0 overflow-hidden rounded-xl bg-card text-card-foreground ring-1 ring-foreground/10">
+    <section className="min-w-0 rounded-xl bg-card text-card-foreground ring-1 ring-foreground/10">
       <div className="border-b px-4 py-4 sm:px-5">
         <h2 className="text-sm font-medium">Role & access</h2>
         <p className="mt-1 max-w-3xl text-sm wrap-break-word text-muted-foreground">
           Choose what {subject} can use. Only Manage staff opens a screen today.
         </p>
       </div>
-      <div className="overflow-x-auto" data-slot="table-container">
+      <div className="xl:hidden">
+        <div className="sticky top-[calc(3.5rem+env(safe-area-inset-top))] z-20 border-b bg-muted">
+          <div className="flex h-11 items-center gap-2 px-4">
+            <MatrixCheck
+              label="All permissions"
+              permissions={PERMISSIONS}
+              state={selectionState(PERMISSIONS)}
+              pending={pending}
+              onChange={(checked) => setMany(PERMISSIONS, checked)}
+            />
+            <span className="text-sm font-medium">All permissions</span>
+          </div>
+          <div className="grid grid-cols-4 divide-x divide-border border-t border-border">
+            {PERMISSION_MATRIX_COLUMNS.map((column) => {
+              const permissions = permissionsInColumn(column.id);
+              return (
+                <div key={column.id} className="flex min-w-0 flex-col items-center px-1 py-2">
+                  <span className="max-w-full text-center text-xs leading-tight font-medium">
+                    {column.label}
+                  </span>
+                  <span className="flex h-11 items-center justify-center">
+                    <MatrixCheck
+                      label={`All ${column.label} permissions`}
+                      permissions={permissions}
+                      state={selectionState(permissions)}
+                      pending={pending}
+                      onChange={(checked) => setMany(permissions, checked)}
+                    />
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+        {PERMISSION_MATRIX.map((row) => {
+          const permissions = permissionsInCells(row.cells);
+          return (
+            <div key={row.label} className="border-b last:border-b-0">
+              <div className="flex h-11 items-center gap-2 px-4">
+                <MatrixCheck
+                  label={`All ${row.label} permissions`}
+                  permissions={permissions}
+                  state={selectionState(permissions)}
+                  pending={pending}
+                  onChange={(checked) => setMany(permissions, checked)}
+                />
+                <span className="min-w-0 truncate text-sm font-medium">{row.label}</span>
+              </div>
+              <div className="grid grid-cols-4 divide-x divide-border border-t border-border">
+                {PERMISSION_MATRIX_COLUMNS.map((column) => {
+                  const permission = cellPermission(row.cells, column.id);
+                  return (
+                    <div key={column.id} className="flex h-11 items-center justify-center">
+                      {permission ? (
+                        <Checkbox
+                          checked={selectedSet.has(permission)}
+                          onCheckedChange={(checked) => setMany([permission], checked === true)}
+                          aria-label={permissionLabel(permission)}
+                          disabled={pending}
+                        />
+                      ) : null}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+      <div className="hidden overflow-x-auto xl:block" data-slot="table-container">
         <table
           className="w-full border-collapse text-sm"
           style={{ tableLayout: "fixed", minWidth: permissionMatrixMinWidth }}
