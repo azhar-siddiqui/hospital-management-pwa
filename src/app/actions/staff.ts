@@ -4,10 +4,50 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { requireAdmin } from "@/lib/auth";
+import { hashPassword } from "@/lib/password";
 import { normalizePermissions } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
-import { isSeededAdmin } from "@/lib/users";
+import { staffAccountSchema } from "@/lib/staff-schema";
+import { isSeededAdmin, normalizeEmail } from "@/lib/users";
+import { Prisma } from "@/generated/prisma/client";
 import type { ActionState } from "@/lib/action-state";
+
+export async function createStaff(_state: ActionState, formData: FormData): Promise<ActionState> {
+  await requireAdmin();
+  const parsed = staffAccountSchema.safeParse({
+    name: formData.get("name"),
+    email: formData.get("email"),
+    password: formData.get("password"),
+    role: formData.get("role"),
+  });
+  if (!parsed.success) {
+    return { ok: false, message: parsed.error.issues[0]?.message ?? "Check the form." };
+  }
+  const permissions = normalizePermissions(formData.getAll("permissions").map(String));
+  if (!permissions) {
+    return { ok: false, message: "Choose permissions from the list." };
+  }
+
+  try {
+    await prisma.user.create({
+      data: {
+        name: parsed.data.name,
+        email: normalizeEmail(parsed.data.email),
+        password: await hashPassword(parsed.data.password),
+        role: parsed.data.role,
+        permissions,
+      },
+    });
+  } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+      return { ok: false, message: "That username is already in use." };
+    }
+    throw error;
+  }
+
+  revalidatePath("/staff");
+  redirect("/staff");
+}
 
 export async function updateStaffPermissions(
   _state: ActionState,

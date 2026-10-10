@@ -8,6 +8,7 @@ import { PERMISSIONS } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
 import { roleLabel } from "@/lib/roles";
 import { isSeededAdmin } from "@/lib/users";
+import { IconArrowLeft } from "@tabler/icons-react";
 
 const USER_ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -54,7 +55,7 @@ export default async function StaffPermissionsPage({
               nativeButton={false}
               render={<Link href="/staff" />}
             >
-              Back
+              <IconArrowLeft data-icon="inline-start" /> Back
             </Button>
           </div>
         </div>

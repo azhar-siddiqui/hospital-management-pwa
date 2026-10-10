@@ -62,11 +62,14 @@ const staffColumns = [
 
 export function StaffHeaderSkeleton() {
   return (
-    <div className="min-w-0">
-      <Skeleton className="h-8 max-w-full sm:hidden" style={{ width: 53 }} />
-      <Skeleton className="hidden h-9 max-w-full sm:block" style={{ width: 66 }} />
-      <Skeleton className="mt-1 h-5 max-w-full" style={{ width: 171 }} />
-      <Skeleton className="mt-1 h-5 max-w-full" style={{ width: 63 }} />
+    <div className="flex min-w-0 flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+      <div className="min-w-0">
+        <Skeleton className="h-8 max-w-full sm:hidden" style={{ width: 53 }} />
+        <Skeleton className="hidden h-9 max-w-full sm:block" style={{ width: 66 }} />
+        <Skeleton className="mt-1 h-5 max-w-full" style={{ width: 171 }} />
+        <Skeleton className="mt-1 h-5 max-w-full" style={{ width: 63 }} />
+      </div>
+      <Skeleton className="h-11 w-full rounded-lg sm:w-28" />
     </div>
   );
 }

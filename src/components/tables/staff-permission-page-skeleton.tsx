@@ -21,27 +21,49 @@ function CheckBar() {
   return <Skeleton className="size-4 shrink-0 rounded-md" />;
 }
 
-export function StaffPermissionPageSkeleton() {
+export function StaffPermissionPageSkeleton({
+  title = "Permissions",
+  account = true,
+  details = false,
+}: {
+  title?: string;
+  account?: boolean;
+  details?: boolean;
+} = {}) {
   return (
     <main className="flex min-w-0 flex-col gap-8" aria-busy="true" aria-live="polite">
-      <span className="sr-only">Loading permissions</span>
+      <span className="sr-only">Loading {title.toLowerCase()}</span>
       <div className="min-w-0">
         <span className="relative inline-block max-w-full">
           <span
             className="invisible block text-2xl font-semibold tracking-tight sm:text-3xl"
             aria-hidden
           >
-            Permissions
+            {title}
           </span>
           <Skeleton className="absolute inset-0" />
         </span>
-        <div className="mt-1">
-          <TextBar text="Account name" className="text-sm" />
-        </div>
-        <div className="mt-1">
-          <TextBar text="Receptionist" className="text-sm font-medium" />
-        </div>
+        {account ? (
+          <>
+            <div className="mt-1">
+              <TextBar text="Account name" className="text-sm" />
+            </div>
+            <div className="mt-1">
+              <TextBar text="Receptionist" className="text-sm font-medium" />
+            </div>
+          </>
+        ) : null}
       </div>
+      {details ? (
+        <section className="min-w-0 rounded-xl bg-card px-4 py-4 ring-1 ring-foreground/10 sm:px-5">
+          <TextBar text="Account" className="text-sm font-medium" />
+          <div className="mt-4 grid gap-4 sm:grid-cols-2">
+            {Array.from({ length: 4 }, (_, index) => (
+              <Skeleton key={index} className="h-11 rounded-lg" />
+            ))}
+          </div>
+        </section>
+      ) : null}
       <div className="flex w-full min-w-0 flex-col gap-6">
         <section className="min-w-0 overflow-hidden rounded-xl bg-card ring-1 ring-foreground/10">
           <div className="border-b px-4 py-4 sm:px-5">
