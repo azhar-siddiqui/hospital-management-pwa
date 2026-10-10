@@ -11,10 +11,11 @@ function createPrismaClient() {
   return new PrismaClient({ adapter });
 }
 
-const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient };
+// A new key drops a client cached before `passwordSeal` existed. Hot reload keeps the old object under `prisma`.
+const globalForPrisma = globalThis as unknown as { hmsPrisma?: PrismaClient };
 
-export const prisma = globalForPrisma.prisma ?? createPrismaClient();
+export const prisma = globalForPrisma.hmsPrisma ?? createPrismaClient();
 
 if (process.env.NODE_ENV !== "production") {
-  globalForPrisma.prisma = prisma;
+  globalForPrisma.hmsPrisma = prisma;
 }

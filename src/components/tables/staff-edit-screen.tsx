@@ -8,12 +8,14 @@ export function StaffEditScreen({
   userId,
   name,
   email,
+  currentPassword = "",
   role,
   assigned,
 }: {
   userId: string;
   name: string;
   email: string;
+  currentPassword?: string;
   role: StaffRole;
   assigned: readonly Permission[];
 }) {
@@ -30,6 +32,7 @@ export function StaffEditScreen({
         userId={userId}
         name={name}
         email={email}
+        currentPassword={currentPassword}
         role={role}
         assigned={assigned}
       />

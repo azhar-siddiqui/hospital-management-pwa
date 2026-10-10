@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { requireAdmin } from "@/lib/auth";
 import { PERMISSIONS } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
+import { openPassword } from "@/lib/password";
 import { isStaffRole, roleLabel } from "@/lib/roles";
 import { isSeededAdmin } from "@/lib/users";
 import { IconArrowLeft } from "@tabler/icons-react";
@@ -19,7 +20,14 @@ export default async function StaffEditPage({ params }: { params: Promise<{ id: 
 
   const account = await prisma.user.findUnique({
     where: { id },
-    select: { id: true, name: true, email: true, role: true, permissions: true },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      role: true,
+      passwordSeal: true,
+      permissions: true,
+    },
   });
   if (!account) notFound();
 
@@ -34,6 +42,7 @@ export default async function StaffEditPage({ params }: { params: Promise<{ id: 
         userId={account.id}
         name={account.name}
         email={account.email}
+        currentPassword={account.passwordSeal ? (openPassword(account.passwordSeal) ?? "") : ""}
         role={staffRole}
         assigned={assigned}
       />

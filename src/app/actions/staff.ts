@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { requireAdmin } from "@/lib/auth";
-import { hashPassword } from "@/lib/password";
+import { hashPassword, openPassword, sealPassword } from "@/lib/password";
 import { normalizePermissions } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
 import { staffAccountSchema, staffAccountUpdateSchema } from "@/lib/staff-schema";
@@ -34,6 +34,7 @@ export async function createStaff(_state: ActionState, formData: FormData): Prom
         name: parsed.data.name,
         email: normalizeEmail(parsed.data.email),
         password: await hashPassword(parsed.data.password),
+        passwordSeal: sealPassword(parsed.data.password),
         role: parsed.data.role,
         permissions,
       },
@@ -92,7 +93,12 @@ export async function updateStaff(_state: ActionState, formData: FormData): Prom
         email: normalizeEmail(parsed.data.email),
         role: parsed.data.role,
         permissions,
-        ...(parsed.data.password ? { password: await hashPassword(parsed.data.password) } : {}),
+        ...(parsed.data.password
+          ? {
+              password: await hashPassword(parsed.data.password),
+              passwordSeal: sealPassword(parsed.data.password),
+            }
+          : {}),
       },
     });
   } catch (error) {
@@ -105,4 +111,16 @@ export async function updateStaff(_state: ActionState, formData: FormData): Prom
   revalidatePath("/staff");
   revalidatePath(`/staff/${user.id}`);
   redirect("/staff");
+}
+
+export async function readStaffPassword(userId: string) {
+  const actor = await requireAdmin();
+  if (!userId || userId === actor.id) return "";
+
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { email: true, role: true, passwordSeal: true },
+  });
+  if (!user || isSeededAdmin(user.email) || user.role === "ADMIN" || !user.passwordSeal) return "";
+  return openPassword(user.passwordSeal) ?? "";
 }

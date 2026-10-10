@@ -2,10 +2,10 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { IconArrowLeft, IconEye, IconEyeOff } from "@tabler/icons-react";
-import { startTransition, useActionState, useState } from "react";
+import { startTransition, useActionState, useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 
-import { updateStaff } from "@/app/actions/staff";
+import { readStaffPassword, updateStaff } from "@/app/actions/staff";
 import { StaffPermissionMatrix } from "@/components/tables/staff-permission-matrix";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -38,18 +38,22 @@ export function StaffEditForm({
   userId,
   name,
   email,
+  currentPassword = "",
   role,
   assigned,
 }: {
   userId: string;
   name: string;
   email: string;
+  currentPassword?: string;
   role: StaffRole;
   assigned: readonly Permission[];
 }) {
   const router = useRouter();
 
-  const [showPassword, setShowPassword] = useState(false);
+  const [showPassword, setShowPassword] = useState(true);
+  const [passwordReady, setPasswordReady] = useState(Boolean(currentPassword));
+  const [storedPassword, setStoredPassword] = useState(currentPassword);
   const [selected, setSelected] = useState<Permission[]>([...assigned]);
   const [subject, setSubject] = useState(name);
   const [state, submit, pending] = useActionState(updateStaff, idleState);
@@ -58,10 +62,26 @@ export function StaffEditForm({
     defaultValues: {
       name,
       email,
-      password: "",
+      password: currentPassword,
       role,
     },
   });
+
+  useEffect(() => {
+    if (currentPassword) return;
+    let active = true;
+    readStaffPassword(userId).then((password) => {
+      if (!active) return;
+      if (password) {
+        form.setValue("password", password);
+        setStoredPassword(password);
+      }
+      setPasswordReady(true);
+    });
+    return () => {
+      active = false;
+    };
+  }, [currentPassword, form, userId]);
 
   function onSubmit(values: StaffAccountUpdateValues) {
     if (pending) return;
@@ -146,7 +166,9 @@ export function StaffEditForm({
                     id="edit-staff-password"
                     type={showPassword ? "text" : "password"}
                     autoComplete="new-password"
-                    disabled={pending}
+                    spellCheck={false}
+                    placeholder={passwordReady ? "At least 8 characters" : "Loading password"}
+                    disabled={pending || !passwordReady}
                     aria-invalid={fieldState.invalid}
                   />
                   <InputGroupAddon align="inline-end">
@@ -166,7 +188,13 @@ export function StaffEditForm({
                 {fieldState.invalid ? (
                   <FieldError errors={[fieldState.error]} />
                 ) : (
-                  <FieldDescription>Leave blank to keep the current password.</FieldDescription>
+                  <FieldDescription>
+                    {storedPassword
+                      ? "This is the password they use to sign in."
+                      : passwordReady
+                        ? "Enter a password for this account. It will show here after you save."
+                        : "Reading the saved password."}
+                  </FieldDescription>
                 )}
               </Field>
             )}
