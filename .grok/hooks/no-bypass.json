@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit|NotebookEdit|Bash|Task",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "guard-no-bypass.py",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}
