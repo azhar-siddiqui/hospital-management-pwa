@@ -1,7 +1,7 @@
 import { AppShell } from "@/components/app-shell";
 import { requireUser } from "@/lib/auth";
 import { SIDEBAR_COOKIE, sidebarClosed } from "@/lib/chrome";
-import { formatHospitalDay } from "@/lib/format";
+import { formatHospitalDay, hospitalGreeting } from "@/lib/format";
 import { cookies } from "next/headers";
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
@@ -17,6 +17,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         permissions: user.permissions,
       }}
       todayLabel={formatHospitalDay()}
+      greeting={hospitalGreeting()}
       sidebarClosed={sidebarClosed(jar.get(SIDEBAR_COOKIE)?.value)}
     >
       {children}

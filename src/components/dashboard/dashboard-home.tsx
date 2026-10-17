@@ -1,3 +1,6 @@
+"use client";
+
+import { useAppShell } from "@/components/app-shell";
 import { Badge } from "@/components/ui/badge";
 import {
   Card,
@@ -17,7 +20,6 @@ import {
   opdToday,
   totalBeds,
 } from "@/lib/dashboard-sample";
-import { formatHospitalDay, hospitalHour } from "@/lib/format";
 import { IconBed, IconCash, IconStethoscope, IconUsers } from "@tabler/icons-react";
 
 const rupees = new Intl.NumberFormat("en-IN", {
@@ -26,10 +28,9 @@ const rupees = new Intl.NumberFormat("en-IN", {
   maximumFractionDigits: 0,
 });
 
-export function DashboardHome({ name }: { name: string }) {
-  const hour = hospitalHour();
-  const hello = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
-  const who = name.trim() || "there";
+export function DashboardHome() {
+  const { user, todayLabel, greeting } = useAppShell();
+  const who = user.name.trim() || "there";
   const metrics = [
     {
       label: "OPD today",
@@ -61,10 +62,10 @@ export function DashboardHome({ name }: { name: string }) {
     <main className="flex min-w-0 flex-col gap-6">
       <div className="min-w-0">
         <h1 className="text-2xl font-semibold tracking-tight wrap-break-word sm:text-3xl">
-          {hello}, {who}
+          {greeting}, {who}
         </h1>
         <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
-          {formatHospitalDay()} · Sample ward figures. These numbers are not read from the database.
+          {todayLabel} · Sample ward figures. These numbers are not read from the database.
         </p>
       </div>
 

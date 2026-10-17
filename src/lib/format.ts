@@ -231,6 +231,13 @@ export function hospitalHour(date = new Date()) {
   return zonedParts(date, hospitalTimeZone()).hour;
 }
 
+export function hospitalGreeting(date = new Date()) {
+  const hour = hospitalHour(date);
+  if (hour < 12) return "Good morning";
+  if (hour < 17) return "Good afternoon";
+  return "Good evening";
+}
+
 export function roundMoney(amount: number) {
   return Math.round(amount * 100) / 100;
 }

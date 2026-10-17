@@ -48,10 +48,26 @@ import {
 import { cn } from "cn";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { createContext, useContext, useMemo, useState } from "react";
 import { ThemeToggle } from "./theme-toggle";
 
 type ShellUser = { name: string; email: string; role: string; permissions: string[] };
+
+type AppShellValue = {
+  user: ShellUser;
+  todayLabel: string;
+  greeting: string;
+};
+
+const AppShellContext = createContext<AppShellValue | null>(null);
+
+export function useAppShell() {
+  const value = useContext(AppShellContext);
+  if (!value) {
+    throw new Error("useAppShell must be used within AppShell");
+  }
+  return value;
+}
 
 const sidebarRupees = new Intl.NumberFormat("en-IN", {
   style: "currency",
@@ -73,34 +89,39 @@ const sidebarToday = [
 export function AppShell({
   user,
   todayLabel,
+  greeting,
   sidebarClosed: sidebarStartsClosed,
   children,
 }: {
   user: ShellUser;
   todayLabel: string;
+  greeting: string;
   sidebarClosed: boolean;
   children: React.ReactNode;
 }) {
   const [sidebarClosed, setSidebarClosed] = useState(sidebarStartsClosed);
+  const shell = useMemo(() => ({ user, todayLabel, greeting }), [user, todayLabel, greeting]);
 
   return (
-    <SidebarProvider
-      open={!sidebarClosed}
-      onOpenChange={(open) => {
-        setSidebarClosed(!open);
-        document.cookie = preferenceCookie(SIDEBAR_COOKIE, open ? "open" : "closed");
-      }}
-      className="min-h-full flex-1 bg-muted/40 print:bg-white"
-    >
-      <AppSidebar user={user} />
-      <div className="flex min-w-0 flex-1 flex-col">
-        <AppHeader todayLabel={todayLabel} user={user} />
-        <div className="mx-auto flex w-full flex-1 flex-col px-4 pt-5 pb-[calc(5.25rem+env(safe-area-inset-bottom))] sm:px-6 sm:pt-6 md:px-8 md:pt-8 md:pb-8 print:max-w-none print:bg-white print:p-0">
-          {children}
+    <AppShellContext.Provider value={shell}>
+      <SidebarProvider
+        open={!sidebarClosed}
+        onOpenChange={(open) => {
+          setSidebarClosed(!open);
+          document.cookie = preferenceCookie(SIDEBAR_COOKIE, open ? "open" : "closed");
+        }}
+        className="min-h-full flex-1 bg-muted/40 print:bg-white"
+      >
+        <AppSidebar user={user} />
+        <div className="flex min-w-0 flex-1 flex-col">
+          <AppHeader todayLabel={todayLabel} user={user} />
+          <div className="mx-auto flex w-full flex-1 flex-col px-4 pt-5 pb-[calc(5.25rem+env(safe-area-inset-bottom))] sm:px-6 sm:pt-6 md:px-8 md:pt-8 md:pb-8 print:max-w-none print:bg-white print:p-0">
+            {children}
+          </div>
+          <PhoneTabs user={user} />
         </div>
-        <PhoneTabs user={user} />
-      </div>
-    </SidebarProvider>
+      </SidebarProvider>
+    </AppShellContext.Provider>
   );
 }
 
