@@ -1,10 +1,11 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { cache } from "react";
 import { can, type Permission } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
 import { SESSION_COOKIE, verifySessionToken } from "@/lib/session";
 
-export async function getCurrentUser() {
+export const getCurrentUser = cache(async () => {
   const token = (await cookies()).get(SESSION_COOKIE)?.value;
   if (!token) {
     return null;
@@ -19,7 +20,7 @@ export async function getCurrentUser() {
     where: { id: session.sub },
     select: { id: true, name: true, email: true, role: true, permissions: true },
   });
-}
+});
 
 export async function requireUser() {
   const user = await getCurrentUser();
